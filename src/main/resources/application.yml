@@ -6,3 +6,26 @@ quarkus:
       spec:
         openapi_yml:
           model-name-prefix: "QuarkusOpenApiGenerator"
+
+  datasource:
+    db-kind: postgresql
+    username: skilluser
+    password: skillpass
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/skilltrack
+    hibernate-orm:
+      database:
+        generation: drop-and-create # or update (safer later)
+      log:
+        sql: true
+
+    swagger-ui:
+      always-include: true
+      path: /swagger
+
+    http:
+      cors: true
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+    url: https://api.openai.com/v1/chat/completions
