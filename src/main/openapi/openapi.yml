@@ -1,42 +1,98 @@
 openapi: 3.0.3
 info:
-  title: Generated API
-  version: "1.0"
+  title: SkillTrack API
+  version: 1.0.0
+  description: |
+    Backend API for logging daily learning activities, retrieving summaries, and generating AI insights.
+
+servers:
+  - url: http://localhost:8080
+
 paths:
-  /fruits:
+  /logs:
     get:
+      summary: Get all learning logs
+      operationId: getLearningLogs
+      tags:
+        - logs
       responses:
-        200:
-          description: OK
+        '200':
+          description: A list of learning logs
           content:
-            application/json: { }
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LearningLog'
+
     post:
+      summary: Add a new learning log
+      operationId: addLearningLog
+      tags:
+        - logs
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Fruit'
+              $ref: '#/components/schemas/LearningLogInput'
       responses:
-        200:
-          description: OK
+        '201':
+          description: Created log
           content:
-            application/json: { }
-    delete:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LearningLog'
+
+  /logs/summarize:
+    post:
+      summary: Get AI summary of recent logs
+      operationId: summarizeLogs
+      tags:
+        - ai
       requestBody:
+        required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Fruit'
+              type: array
+              items:
+                $ref: '#/components/schemas/LearningLog'
       responses:
-        200:
-          description: OK
+        '200':
+          description: Summary generated
           content:
-            application/json: { }
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SummaryResponse'
+
 components:
   schemas:
-    Fruit:
+    LearningLog:
+      type: object
       properties:
-        description:
+        id:
+          type: integer
+          format: int64
+        content:
           type: string
-        name:
+        tags:
           type: string
+        date:
+          type: string
+          format: date
+
+    LearningLogInput:
+      type: object
+      required:
+        - content
+      properties:
+        content:
+          type: string
+
+    SummaryResponse:
+      type: object
+      properties:
+        summary:
+          type: string
+

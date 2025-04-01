@@ -1,154 +1,123 @@
-# skilltrack-ai
+# SkillTrack AI
 
-This project uses Quarkus, the Supersonic Subatomic Java Framework.
+SkillTrack AI is a backend service that helps individuals track their daily learning progress and generates AI-powered summaries of what they’ve learned.
 
-If you want to learn more about Quarkus, please visit its website: <https://quarkus.io/>.
+## 🚀 Tech Stack
 
-## Running the application in dev mode
+- **Java 21**
+- **Quarkus** (RESTEasy, Panache, OpenAPI)
+- **PostgreSQL** (Docker-based)
+- **OpenAPI Generator**
+- **OpenAI GPT API**
+- **Swagger UI**
 
-You can run your application in dev mode that enables live coding using:
+---
 
-```shell script
+## 🛠 Setup Instructions
+
+### 1. Clone the project
+
+```bash
+git clone https://github.com/Soulaimen99/skilltrack-ai.git
+cd skilltrack-ai
+```
+
+---
+
+### 2. Start PostgreSQL (via Docker)
+
+```bash
+docker-compose up -d
+```
+
+Default credentials:
+- Host: `localhost:5432`
+- User: `skilluser`
+- Pass: `skillpass`
+- DB: `skilltrack`
+
+---
+
+### 3. Configure the app
+
+Edit `src/main/resources/application.yml`:
+
+```yaml
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: skilluser
+    password: skillpass
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/skilltrack
+  hibernate-orm:
+    database:
+      generation: drop-and-create
+    log:
+      sql: true
+
+  swagger-ui:
+    always-include: true
+    path: /swagger
+
+openai:
+  api:
+    key: YOUR_OPENAI_API_KEY
+    url: https://api.openai.com/v1/chat/completions
+```
+
+---
+
+### 4. Run the app in dev mode
+
+```bash
 ./mvnw quarkus:dev
 ```
 
-> **_NOTE:_**  Quarkus now ships with a Dev UI, which is available in dev mode only at <http://localhost:8080/q/dev/>.
+Open in browser:
 
-## Packaging and running the application
+- Swagger UI → `http://localhost:8080/q/swagger-ui`
 
-The application can be packaged using:
+---
 
-```shell script
-./mvnw package
-```
-
-It produces the `quarkus-run.jar` file in the `target/quarkus-app/` directory.
-Be aware that it’s not an _über-jar_ as the dependencies are copied into the `target/quarkus-app/lib/` directory.
-
-The application is now runnable using `java -jar target/quarkus-app/quarkus-run.jar`.
-
-If you want to build an _über-jar_, execute the following command:
-
-```shell script
-./mvnw package -Dquarkus.package.jar.type=uber-jar
-```
-
-The application, packaged as an _über-jar_, is now runnable using `java -jar target/*-runner.jar`.
-
-## Creating a native executable
-
-You can create a native executable using:
-
-```shell script
-./mvnw package -Dnative
-```
-
-Or, if you don't have GraalVM installed, you can run the native executable build in a container using:
-
-```shell script
-./mvnw package -Dnative -Dquarkus.native.container-build=true
-```
-
-You can then execute your native executable with: `./target/skilltrack-ai-1.0.0-SNAPSHOT-runner`
-
-If you want to learn more about building native executables, please consult <https://quarkus.io/guides/maven-tooling>.
-
-## Related Guides
-
-- REST ([guide](https://quarkus.io/guides/rest)): A Jakarta REST implementation utilizing build time processing and Vert.x. This extension is not compatible with the quarkus-resteasy extension, or any of the extensions that depend on it.
-- JSON-B ([guide](https://quarkus.io/guides/rest-json)): JSON Binding support
-- REST Client ([guide](https://quarkus.io/guides/rest-client)): Call REST services
-- YAML Configuration ([guide](https://quarkus.io/guides/config-yaml)): Use YAML to configure your Quarkus application
-- Hibernate ORM with Panache ([guide](https://quarkus.io/guides/hibernate-orm-panache)): Simplify your persistence code for Hibernate ORM via the active record or the repository pattern
-- SmallRye Health ([guide](https://quarkus.io/guides/smallrye-health)): Monitor service health
-- OpenAPI Generator - REST Client Generator ([guide](https://docs.quarkiverse.io/quarkus-openapi-generator/dev/index.html)): Generation of Rest Clients based on OpenAPI specification files
-- JDBC Driver - PostgreSQL ([guide](https://quarkus.io/guides/datasource)): Connect to the PostgreSQL database via JDBC
-
-## Provided Code
-
-### YAML Config
-
-Configure your application with YAML
-
-[Related guide section...](https://quarkus.io/guides/config-reference#configuration-examples)
-
-The Quarkus application configuration is located in `src/main/resources/application.yml`.
-
-### Hibernate ORM
-
-Create your first JPA entity
-
-[Related guide section...](https://quarkus.io/guides/hibernate-orm)
-
-[Related Hibernate with Panache section...](https://quarkus.io/guides/hibernate-orm-panache)
-
-
-### OpenAPI Generator Codestart
-
-Start to code with the OpenAPI Generator extension.
-
-[Related guide section...](https://docs.quarkiverse.io/quarkus-openapi-generator/dev/index.html)
-
-## Requirements
-
-If you do not have added the `io.quarkus:quarkus-rest-client-jackson` or `io.quarkus:quarkus-rest-client-reactive-jackson` extension in your project, add it first:
-
-Remember, you just need to add one of them, depending on your needs.
-
-### REST Client Jackson:
-
-Quarkus CLI:
+### 5. Generate API code (if you update `openapi.yml`)
 
 ```bash
-quarkus ext add io.quarkus:quarkus-rest-client-jackson
+java -jar openapi-generator-cli.jar generate \
+  -i src/main/openapi/openapi.yml \
+  -g java \
+  -o target/generated-sources/openapi \
+  --api-package com.skilltrack.api \
+  --model-package com.skilltrack.model \
+  --additional-properties=useTags=true
 ```
 
-Maven:
-```bash
-./mvnw quarkus:add-extension -Dextensions="io.quarkus:quarkus-rest-client-jackson"
-```
+Then copy necessary files into `src/main/java`.
 
-Gradle:
+---
 
-```bash
-./gradlew addExtension --extensions="io.quarkus:quarkus-rest-client-jackson"
-```
+## ✅ MVP Features
 
-or
+- [x] Add learning logs
+- [x] View log history
+- [x] Generate AI-powered summaries
+- [ ] Tags, flashcards (coming soon)
 
-### REST Client Reactive Jackson:
+---
 
-Quarkus CLI:
+## 📦 Future Additions
 
-```bash
-quarkus ext add io.quarkus:quarkus-rest-client-reactive-jackson
-```
+- PWA mobile app
+- Markdown export
+- AI goal suggestions
+- GitHub activity sync
 
-Maven:
+---
 
-```bash
-./mvnw quarkus:add-extension -Dextensions="io.quarkus:quarkus-rest-client-reactive-jackson"
-```
+## 📜 License
 
-Gradle:
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
-```bash
-./gradlew addExtension --extensions="io.quarkus:quarkus-rest-client-reactive-jackson"
-```
-### REST Client
+---
 
-Invoke different services through REST with JSON
-
-[Related guide section...](https://quarkus.io/guides/rest-client)
-
-### REST
-
-Easily start your REST Web Services
-
-[Related guide section...](https://quarkus.io/guides/getting-started-reactive#reactive-jax-rs-resources)
-
-### SmallRye Health
-
-Monitor your application's health using SmallRye Health
-
-[Related guide section...](https://quarkus.io/guides/smallrye-health)
+Built with ☕, 💡, and a lot of 🚀

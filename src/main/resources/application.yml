@@ -1,5 +1,3 @@
-greeting:
-  message: "hello"
 quarkus:
   openapi-generator:
     codegen:
@@ -10,7 +8,7 @@ quarkus:
   datasource:
     db-kind: postgresql
     username: skilluser
-    password: skillpass
+    password: fireball
     jdbc:
       url: jdbc:postgresql://localhost:5432/skilltrack
     hibernate-orm:
@@ -26,3 +24,7 @@ quarkus:
     http:
       cors: true
 
+openai:
+  api:
+    key: ${openai_api}
+    url: https://api.openai.com/v1/chat/completions
