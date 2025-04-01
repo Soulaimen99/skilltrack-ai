@@ -1,0 +1,8 @@
+greeting:
+  message: "hello"
+quarkus:
+  openapi-generator:
+    codegen:
+      spec:
+        openapi_yml:
+          model-name-prefix: "QuarkusOpenApiGenerator"
