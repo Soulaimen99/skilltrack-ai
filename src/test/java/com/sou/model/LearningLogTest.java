@@ -13,7 +13,7 @@
 
 package com.sou.model;
 
-import com.sou.sou.model.LearningLog;
+import com.sou.model.LearningLog;
 import org.junit.jupiter.api.Test;
 
 /**

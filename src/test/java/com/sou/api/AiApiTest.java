@@ -15,10 +15,9 @@ package com.sou.api;
 
 import java.util.List;
 
-import com.sou.sou.ApiException;
-import com.sou.sou.api.AiApi;
-import com.sou.sou.model.LearningLog;
-import com.sou.sou.model.SummaryResponse;
+import com.sou.impl.AiApiImpl;
+import com.sou.model.LearningLog;
+import com.sou.model.SummaryResponse;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
@@ -28,15 +27,14 @@ import org.junit.jupiter.api.Test;
 @Disabled
 public class AiApiTest {
 
-    private final AiApi api = new AiApi();
+    private final AiApi api = new AiApiImpl();
 
     /**
      * Get AI summary of recent logs
      *
-     * @throws ApiException if the Api call fails
      */
     @Test
-    public void summarizeLogsTest() throws ApiException {
+    public void summarizeLogsTest() {
         List<LearningLog> learningLog = null;
         SummaryResponse response = api.summarizeLogs(learningLog);
         // TODO: test validations

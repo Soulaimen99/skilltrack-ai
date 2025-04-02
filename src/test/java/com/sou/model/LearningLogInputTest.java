@@ -13,7 +13,7 @@
 
 package com.sou.model;
 
-import com.sou.sou.model.LearningLogInput;
+import com.sou.model.LearningLogInput;
 import org.junit.jupiter.api.Test;
 
 /**

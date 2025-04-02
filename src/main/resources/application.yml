@@ -5,24 +5,25 @@ quarkus:
         openapi_yml:
           model-name-prefix: "QuarkusOpenApiGenerator"
 
+  swagger-ui:
+    always-include: true
+    path: /swagger
+
+  http:
+    cors: true
+
   datasource:
     db-kind: postgresql
     username: skilluser
     password: fireball
     jdbc:
       url: jdbc:postgresql://localhost:5432/skilltrack
-    hibernate-orm:
-      database:
-        generation: drop-and-create # or update (safer later)
-      log:
-        sql: true
 
-    swagger-ui:
-      always-include: true
-      path: /swagger
-
-    http:
-      cors: true
+  hibernate-orm:
+    database:
+      generation: drop-and-create # use 'update' for dev
+    log:
+      sql: true
 
 openai:
   api:
