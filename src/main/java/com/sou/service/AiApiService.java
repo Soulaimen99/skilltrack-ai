@@ -13,16 +13,45 @@ import com.sou.model.SummaryResponse;
 
 @ApplicationScoped
 @Path( "/logs/summarize" )
-@Consumes("application/json")
-@Produces("application/json")
+@Consumes( "application/json" )
+@Produces( "application/json" )
 public class AiApiService implements AiApi {
 	@Override
-	public SummaryResponse  summarizeLogs( List<LearningLog> logs ) {
-		String summary = "Summary (" + logs.size() + " logs): " + logs.stream()
-																		  .map( LearningLog::getContent )
-																		  .reduce( "", ( a, b ) -> a + " " + b );
+	public SummaryResponse summarizeLogs( List<LearningLog> logs ) {
 		SummaryResponse res = new SummaryResponse();
-		res.setSummary( summary.trim() );
+		
+		if ( logs == null || logs.isEmpty() ) {
+			res.setSummary( "No logs to summarize." );
+			return res;
+		}
+		
+		// Extract content and trim
+		List<String> items = logs.stream()
+									 .map( LearningLog::getContent )
+									 .map( String::trim )
+									 .filter( s -> !s.isEmpty() )
+									 .toList();
+		
+		if ( items.isEmpty() ) {
+			res.setSummary( "The logs were empty." );
+			return res;
+		}
+		
+		String summary;
+		if ( items.size() == 1 ) {
+			summary = "You worked on: " + items.getFirst() + ".";
+		}
+		else if ( items.size() == 2 ) {
+			summary = "You worked on: " + items.get( 0 ) + " and " + items.get( 1 ) + ".";
+		}
+		else {
+			String allButLast = String.join( ", ", items.subList( 0, items.size() - 1 ) );
+			String last = items.getLast();
+			summary = "You worked on: " + allButLast + ", and " + last + ".";
+		}
+		
+		res.setSummary( summary );
 		return res;
 	}
+	
 }
