@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: skilldb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: skilluser
+      POSTGRES_PASSWORD: fireball
+      POSTGRES_DB: skilltrack
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - skillnet
+
+volumes:
+  pgdata:
+
+networks:
+  skillnet:

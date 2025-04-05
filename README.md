@@ -1,123 +1,107 @@
-# SkillTrack AI
+# 🚀 SkillTrack AI
 
-SkillTrack AI is a backend service that helps individuals track their daily learning progress and generates AI-powered summaries of what they’ve learned.
-
-## 🚀 Tech Stack
-
-- **Java 21**
-- **Quarkus** (RESTEasy, Panache, OpenAPI)
-- **PostgreSQL** (Docker-based)
-- **OpenAPI Generator**
-- **OpenAI GPT API**
-- **Swagger UI**
+A Quarkus-based backend for tracking daily learning activities, summarizing them using AI, and managing logs via a REST API.
 
 ---
 
-## 🛠 Setup Instructions
+## 🔧 Tech Stack
 
-### 1. Clone the project
+- [Quarkus 3.21.0](https://quarkus.io/)
+- Java 21
+- REST (Jakarta)
+- PostgreSQL (via Docker)
+- Hibernate ORM (Panache)
+- OpenAPI + Swagger UI
+- OpenAPI Generator (interface-only, jakarta-based)
+- JUnit 5 + RestAssured
+- Lombok for clean models
+
+---
+
+## 📦 Features
+
+- Add and retrieve learning logs
+- Summarize logs using AI (OpenAI-ready)
+- API documented via Swagger UI
+- Clean and modern Quarkus setup with zero `javax.*`
+- Easily extendable and testable
+
+---
+
+## 🧩 Setup
+
+### 1. Clone & Build
 
 ```bash
-git clone https://github.com/Soulaimen99/skilltrack-ai.git
+git clone https://github.com/yourusername/skilltrack-ai.git
 cd skilltrack-ai
+./mvnw clean compile
 ```
 
----
-
-### 2. Start PostgreSQL (via Docker)
+### 2. Start PostgreSQL via Docker
 
 ```bash
 docker-compose up -d
 ```
 
-Default credentials:
-- Host: `localhost:5432`
-- User: `skilluser`
-- Pass: `skillpass`
+Default DB credentials:
+
 - DB: `skilltrack`
+- User: `skilluser`
+- Password: `fireball`
 
----
-
-### 3. Configure the app
-
-Edit `src/main/resources/application.yml`:
-
-```yaml
-quarkus:
-  datasource:
-    db-kind: postgresql
-    username: skilluser
-    password: skillpass
-    jdbc:
-      url: jdbc:postgresql://localhost:5432/skilltrack
-  hibernate-orm:
-    database:
-      generation: drop-and-create
-    log:
-      sql: true
-
-  swagger-ui:
-    always-include: true
-    path: /swagger
-
-openai:
-  api:
-    key: YOUR_OPENAI_API_KEY
-    url: https://api.openai.com/v1/chat/completions
-```
-
----
-
-### 4. Run the app in dev mode
+### 3. Run the App
 
 ```bash
 ./mvnw quarkus:dev
 ```
 
-Open in browser:
-
-- Swagger UI → `http://localhost:8080/q/swagger-ui`
+Dev UI available at: [http://localhost:8080/q/dev-ui](http://localhost:8080/q/dev-ui)
 
 ---
 
-### 5. Generate API code (if you update `openapi.yml`)
+## 🌐 API Docs
+
+- Swagger UI: [http://localhost:8080/swagger](http://localhost:8080/swagger)
+- OpenAPI JSON: [http://localhost:8080/q/openapi](http://localhost:8080/q/openapi)
+
+---
+
+## 🧪 Running Tests
 
 ```bash
-java -jar openapi-generator-cli.jar generate \
-  -i src/main/openapi/openapi.yml \
-  -g java \
-  -o target/generated-sources/openapi \
-  --api-package com.skilltrack.api \
-  --model-package com.skilltrack.model \
-  --additional-properties=useTags=true
+./mvnw test
 ```
 
-Then copy necessary files into `src/main/java`.
+Covers:
+
+- Log creation and retrieval
+- Summary endpoint
+- Model equality + validation
 
 ---
 
-## ✅ MVP Features
+## 📜 OpenAPI Spec
 
-- [x] Add learning logs
-- [x] View log history
-- [x] Generate AI-powered summaries
-- [ ] Tags, flashcards (coming soon)
+The file `src/main/openapi/openapi.yml` defines your API and is used to generate DTOs and interfaces using:
 
----
+```bash
+./mvnw compile
+```
 
-## 📦 Future Additions
-
-- PWA mobile app
-- Markdown export
-- AI goal suggestions
-- GitHub activity sync
+No need to run the generator manually — it's integrated with the Maven build.
 
 ---
 
-## 📜 License
+## 🧠 Notes
 
-This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
+- OpenAPI code is generated to `target/generated-sources/openapi`
+- Models use Lombok (`@Data`) to simplify getters, setters, equals/hashCode
+- Hibernate auto-creates tables using `drop-and-create` mode
+- Ready to integrate OpenAI client with your API key
 
 ---
 
-Built with ☕, 💡, and a lot of 🚀
+## 📌 License
+
+MIT © 2025 Soulaimen Choura
