@@ -15,7 +15,8 @@ quarkus:
     path: /swagger
 
   http:
-    cors: true
+    cors:
+      origins: /.*/
 
 openai:
   api:

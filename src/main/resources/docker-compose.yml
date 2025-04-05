@@ -1,9 +1,9 @@
-version: '3.8'
+version: "3.9"
 
 services:
   postgres:
     image: postgres:15
-    container_name: skilldb
+    container_name: skilltrack-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: skilluser
@@ -12,12 +12,12 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - skilltrack-db-data:/var/lib/postgresql/data
     networks:
-      - skillnet
+      - skilltrack-net
 
 volumes:
-  pgdata:
+  skilltrack-db-data:
 
 networks:
-  skillnet:
+  skilltrack-net:

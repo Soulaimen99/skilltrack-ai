@@ -26,4 +26,5 @@ public class LearningLog {
 	private String content;
 	private String tags;
 	private LocalDate date;
+	
 }
