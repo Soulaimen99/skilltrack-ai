@@ -5,10 +5,10 @@ quarkus:
 
   datasource:
     db-kind: postgresql
-    username: skilluser
-    password: fireball
+    username: ${DB_PASSWORD:skilluser}
+    password: ${DB_PASSWORD:fireball}
     jdbc:
-      url: jdbc:postgresql://localhost:5432/skilltrack
+      url: jdbc:postgresql://localhost:5432/${DB_NAME:skilltrack}
 
   hibernate-orm:
     log:
@@ -24,5 +24,5 @@ quarkus:
 
 openai:
   api:
-    key: ${openai_api}
+    key: ${OPENAI_API_KEY}
     url: https://api.openai.com/v1/chat/completions

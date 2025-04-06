@@ -13,11 +13,7 @@ import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
-@Setter
-@Getter
 @Data
 @Entity
 @Table( name = "learning_log" )

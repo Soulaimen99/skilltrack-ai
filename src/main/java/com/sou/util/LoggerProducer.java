@@ -12,7 +12,6 @@ public class LoggerProducer {
 	
 	@Produces
 	public Logger produceLogger( InjectionPoint injectionPoint ) {
-		// Automatically create a logger for the class where it's injected
 		return LoggerFactory.getLogger( injectionPoint.getMember().getDeclaringClass().getName() );
 	}
 }

@@ -52,13 +52,11 @@ public class LogsApiService implements LogsApi {
 		logger.debug( "Retrieved {} logs for user: {}", logs.size(), username );
 		
 		return logs;
-		
 	}
 	
 	@Override
 	@Transactional
 	public LearningLog addLearningLog( LearningLogInput input ) {
-		// Validate input
 		if ( input == null || input.getContent() == null || input.getContent().isBlank() ) {
 			logger.error( "Invalid log input: content is null or blank" );
 			throw new IllegalArgumentException( "Content must not be null or blank" );
@@ -84,6 +82,5 @@ public class LogsApiService implements LogsApi {
 		
 		logger.info( "Log added successfully for user: {}", username );
 		return log;
-		
 	}
 }

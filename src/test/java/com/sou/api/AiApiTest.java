@@ -19,8 +19,8 @@ public class AiApiTest {
 	
 	@Test
 	void testSummarizeLogs() {
-		LearningLogInput log1 = new LearningLogInput( "Learned Quarkus basics" );
-		LearningLogInput log2 = new LearningLogInput( "Explored JPA entities" );
+		LearningLogInput log1 = new LearningLogInput( "Learned Quarkus basics", null );
+		LearningLogInput log2 = new LearningLogInput( "Explored JPA entities", null );
 		
 		given()
 				.auth().basic( USERNAME, PASSWORD )

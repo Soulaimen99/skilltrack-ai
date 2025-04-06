@@ -49,7 +49,7 @@ public class LogsApiTest {
 		given()
 				.auth().basic( USERNAME, PASSWORD )
 				.contentType( ContentType.JSON )
-				.body( new LearningLogInput( null ) )
+				.body( new LearningLogInput( null, null ) )
 				.when()
 				.post( "/logs" )
 				.then()

@@ -25,15 +25,11 @@ public class AiApiService implements AiApi {
 	@Override
 	public SummaryResponse summarizeLogs( List<LearningLogInput> logs ) {
 		logger.info( "Received request to summarize logs. Total logs: {}", logs != null ? logs.size() : 0 );
-		
-		// Validate input
 		if ( logs == null || logs.isEmpty() ) {
 			logger.warn( "Empty or null logs provided for summarization." );
 			throw new IllegalArgumentException( "Logs cannot be null or empty" );
 		}
 		
-		
-		// Extract content and trim
 		List<String> items = logs.stream()
 									 .map( LearningLogInput::getContent )
 									 .map( String::trim )

@@ -16,9 +16,9 @@ jobs:
         ports:
           - 5432:5432
         env:
-          POSTGRES_DB: skilltrack
-          POSTGRES_USER: skilluser
-          POSTGRES_PASSWORD: fireball
+          POSTGRES_DB: ${DB_NAME}
+          POSTGRES_USER: ${DB_USER}
+          POSTGRES_PASSWORD: ${DB_PASSWORD}
         options: >-
           --health-cmd="pg_isready"
           --health-interval=10s
@@ -45,11 +45,11 @@ jobs:
       - name: Create schema
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
-          PGPASSWORD=fireball psql -h localhost -U skilluser -d skilltrack -f src/main/resources/db/schema.sql
+          PGPASSWORD=${DB_PASSWORD} psql -h localhost -U ${DB_USER} -d ${DB_NAME} -f src/main/resources/db/schema.sql
 
       - name: Insert default data
         run: |
-          PGPASSWORD=fireball psql -h localhost -U skilluser -d skilltrack -f src/main/resources/db/data.sql
+          PGPASSWORD=${DB_PASSWORD} psql -h localhost -U ${DB_USER} -d ${DB_NAME} -f src/main/resources/db/data.sql
 
       - name: Build and test
         run: ./mvnw clean verify -B
