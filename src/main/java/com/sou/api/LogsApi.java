@@ -26,4 +26,5 @@ public interface LogsApi {
 	
 	@POST
 	LearningLog addLearningLog( @Valid @NotNull LearningLogInput input );
+	
 }

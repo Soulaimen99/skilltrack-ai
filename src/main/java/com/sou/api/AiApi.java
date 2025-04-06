@@ -21,4 +21,5 @@ public interface AiApi {
 	
 	@POST
 	SummaryResponse summarizeLogs( @Valid List<@Valid LearningLogInput> learningLogs );
+	
 }

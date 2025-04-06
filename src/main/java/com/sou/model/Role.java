@@ -26,4 +26,5 @@ public class Role {
 	@RolesValue
 	@Column( nullable = false )
 	public String role;
+	
 }
