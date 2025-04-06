@@ -5,7 +5,7 @@ quarkus:
 
   datasource:
     db-kind: postgresql
-    username: ${DB_PASSWORD:skilluser}
+    username: ${DB_USER:skilluser}
     password: ${DB_PASSWORD:fireball}
     jdbc:
       url: jdbc:postgresql://localhost:5432/${DB_NAME:skilltrack}
