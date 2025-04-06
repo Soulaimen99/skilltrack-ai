@@ -1,3 +1,5 @@
+TRUNCATE TABLE learning_log, user_roles, users CASCADE;
+
 -- Insert users
 INSERT INTO users ( username, password, enabled )
 VALUES ( 'sou', '$2a$10$DNCqQ8dNy9fETdUspssNF.G2ws4X8MG3WVL13WwyvgldoVeZeOsmi', true )
