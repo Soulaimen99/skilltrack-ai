@@ -48,7 +48,7 @@ Default DB credentials:
 
 - DB: `skilltrack`
 - User: `skilluser`
-- Password: `fireball`
+- Password: ``
 
 ### 3. Run the App
 
