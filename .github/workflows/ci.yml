@@ -42,17 +42,14 @@ jobs:
             sleep 2
           done
 
-      - name: Create required tables
+      - name: Create schema
         run: |
           sudo apt-get update && sudo apt-get install -y postgresql-client
-          PGPASSWORD=fireball psql -h localhost -U skilluser -d skilltrack -c "
-            CREATE TABLE IF NOT EXISTS learning_log (
-              id SERIAL PRIMARY KEY,
-              content TEXT,
-              date TIMESTAMP,
-              tags TEXT
-            );
-          "
+          PGPASSWORD=fireball psql -h localhost -U skilluser -d skilltrack -f src/main/resources/db/schema.sql
+
+      - name: Insert default data
+        run: |
+          PGPASSWORD=fireball psql -h localhost -U skilluser -d skilltrack -f src/main/resources/db/data.sql
 
       - name: Build and test
         run: ./mvnw clean verify -B

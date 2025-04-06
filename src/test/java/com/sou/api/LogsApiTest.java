@@ -10,6 +10,8 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
+import static com.sou.api.Authentication.PASSWORD;
+import static com.sou.api.Authentication.USERNAME;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.empty;
 import static org.hamcrest.Matchers.equalTo;
@@ -30,30 +32,50 @@ public class LogsApiTest {
 	@Test
 	void testAddLog() {
 		given()
+				.auth().basic( USERNAME, PASSWORD )
 				.contentType( ContentType.JSON )
-				.body( new LearningLogInput( "Studied JPA and Quarkus", "TEST" ) )
+				.body( new LearningLogInput( "Studied JPA and Quarkus", "TEST_DATA" ) )
 				.when()
 				.post( "/logs" )
 				.then()
 				.statusCode( 200 )
-				.body( "content", equalTo( "Studied JPA and Quarkus" ) );
+				.contentType( ContentType.JSON )
+				.body( "content", equalTo( "Studied JPA and Quarkus" ) )
+				.body( "tags", equalTo( "TEST_DATA" ) );
+	}
+	
+	@Test
+	void testAddInvalidLog() {
+		given()
+				.auth().basic( USERNAME, PASSWORD )
+				.contentType( ContentType.JSON )
+				.body( new LearningLogInput( null ) )
+				.when()
+				.post( "/logs" )
+				.then()
+				.statusCode( 400 )
+				.body( equalTo( "Content must not be null or blank" ) );
+		
 	}
 	
 	@Test
 	void testGetLogs() {
 		given()
+				.auth().basic( USERNAME, PASSWORD )
 				.contentType( ContentType.JSON )
-				.body( new LearningLogInput( "Test log before get", "TEST" ) )
+				.body( new LearningLogInput( "Test log before get", "TEST_DATA" ) )
 				.when()
 				.post( "/logs" )
 				.then()
 				.statusCode( 200 );
 		
 		given()
+				.auth().basic( USERNAME, PASSWORD )
 				.when()
 				.get( "/logs" )
 				.then()
 				.statusCode( 200 )
-				.body( "$", not( empty() ) );
+				.contentType( ContentType.JSON )
+				.body( "$", not( empty() ) ); // Ensure logs are returned
 	}
 }

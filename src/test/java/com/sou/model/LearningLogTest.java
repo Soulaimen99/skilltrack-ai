@@ -5,11 +5,12 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 public class LearningLogTest {
 	
 	@Test
-	void testFields() {
+	void testFieldInitialization() {
 		LearningLog log = new LearningLog();
 		log.setId( 1L );
 		log.setContent( "Test content" );
@@ -24,19 +25,30 @@ public class LearningLogTest {
 	
 	@Test
 	void testEquality() {
-		LearningLog a = new LearningLog();
-		a.setId( 1L );
-		a.setContent( "Test" );
-		a.setTags( "x" );
-		a.setDate( LocalDate.now() );
+		LocalDate today = LocalDate.now();
 		
-		LearningLog b = new LearningLog();
-		b.setId( 1L );
-		b.setContent( "Test" );
-		b.setTags( "x" );
-		b.setDate( a.getDate() );
+		LearningLog log1 = new LearningLog();
+		log1.setId( 1L );
+		log1.setContent( "Test" );
+		log1.setTags( "tag" );
+		log1.setDate( today );
 		
-		assertEquals( a, b );
-		assertEquals( a.hashCode(), b.hashCode() );
+		LearningLog log2 = new LearningLog();
+		log2.setId( 1L );
+		log2.setContent( "Test" );
+		log2.setTags( "tag" );
+		log2.setDate( today );
+		
+		assertEquals( log1, log2, "Logs with identical fields should be equal" );
+		assertEquals( log1.hashCode(), log2.hashCode(), "HashCodes should match for identical objects" );
+	}
+	
+	@Test
+	void testMissingOptionalFields() {
+		LearningLog log = new LearningLog();
+		log.setContent( "Content only" );
+		
+		assertNull( log.getTags() );
+		assertNull( log.getDate() );
 	}
 }

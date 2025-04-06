@@ -1,4 +1,8 @@
 quarkus:
+  swagger-ui:
+    always-include: true
+    path: /swagger
+
   datasource:
     db-kind: postgresql
     username: skilluser
@@ -10,13 +14,13 @@ quarkus:
     log:
       sql: true
 
-  swagger-ui:
-    always-include: true
-    path: /swagger
-
   http:
-    cors:
-      origins: /.*/
+    auth:
+      basic: true
+      policy:
+        roles-allowed:
+          roles-allowed: admin,user
+
 
 openai:
   api:

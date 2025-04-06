@@ -2,6 +2,7 @@ package com.sou.api;
 
 import java.util.List;
 
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.Consumes;
@@ -17,6 +18,7 @@ import com.sou.model.LearningLogInput;
 @Path( "/logs" )
 @Produces( MediaType.APPLICATION_JSON )
 @Consumes( MediaType.APPLICATION_JSON )
+@RolesAllowed( { "user", "admin" } )
 public interface LogsApi {
 	
 	@GET

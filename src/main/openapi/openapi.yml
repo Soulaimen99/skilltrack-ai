@@ -17,7 +17,7 @@ paths:
         - logs
       responses:
         '200':
-          description: A list of learning logs
+          description: A list of learning logs.
           content:
             application/json:
               schema:
@@ -38,15 +38,17 @@ paths:
               $ref: '#/components/schemas/LearningLogInput'
       responses:
         '201':
-          description: Created log
+          description: Created a new learning log entry.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/LearningLog'
+        '400':
+          description: Invalid request. Please ensure all required fields are provided.
 
   /logs/summarize:
     post:
-      summary: Get AI summary of recent logs
+      summary: Get AI-generated summary of learning logs
       operationId: summarizeLogs
       tags:
         - ai
@@ -57,42 +59,56 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/LearningLog'
+                $ref: '#/components/schemas/LearningLogInput'
       responses:
         '200':
-          description: Summary generated
+          description: Successfully generated a summary of the provided logs.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/SummaryResponse'
+        '400':
+          description: Invalid input logs. Please ensure the format is correct.
+
 
 components:
   schemas:
     LearningLog:
       type: object
+      description: Represents a user's learning log entry.
       properties:
         id:
           type: integer
           format: int64
+          description: Unique identifier of the learning log.
         content:
           type: string
+          description: The main content of the learning log.
         tags:
           type: string
+          description: Tags associated with the log, separated by commas.
         date:
           type: string
           format: date
+          description: The date when the log entry was created or tracked.
 
     LearningLogInput:
       type: object
+      description: Input for creating a learning log entry.
       required:
         - content
       properties:
         content:
           type: string
+          description: The main content of the learning log entry. This field is mandatory.
+        tags:
+          type: string
+          description: Optional tags for categorizing the log entry.
 
     SummaryResponse:
       type: object
+      description: Response containing the AI-generated summary of learning logs.
       properties:
         summary:
           type: string
-
+          description: Summary generated from the provided learning logs.
