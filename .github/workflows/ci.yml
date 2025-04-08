@@ -12,26 +12,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Docker
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker.io
+          sudo service docker start
+          docker info
+
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: 21
           distribution: temurin
           cache: maven
-
-      - name: Ensure Docker is running
-        run: echo "Docker is pre-installed and enabled on GitHub runner."
-
-      - name: Set up environment variables for Testcontainers
-        run: |
-          echo "DB_USER=${{ secrets.DB_USER }}" >> $GITHUB_ENV
-          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
-          echo "DB_NAME=${{ secrets.DB_NAME }}" >> $GITHUB_ENV
-
-      - name: Wait for Testcontainers to start
-        run: |
-          docker --version
-          echo "Testcontainers will handle the PostgreSQL database lifecycle."
 
       - name: Build and test
         run: ./mvnw clean verify -B
