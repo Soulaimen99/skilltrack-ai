@@ -20,5 +20,15 @@ jobs:
           distribution: temurin
           cache: maven
 
+      - name: Set up environment variables
+        run: echo "TEST_USER=${{ secrets.TEST_USER }}" >> $GITHUB_ENV
+        env:
+          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+
       - name: Build and test
+        env:
+          TEST_DB_USER: ${{ secrets.DB_USER }}
+          TEST_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          TEST_DB_NAME: ${{ secrets.DB_NAME }}
+
         run: ./mvnw clean verify -B

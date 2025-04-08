@@ -11,9 +11,9 @@ public abstract class AbstractDatabaseTest {
 	@Container
 	protected static final PostgreSQLContainer<?> POSTGRES_CONTAINER =
 			new PostgreSQLContainer<>( "postgres:15" )
-					.withDatabaseName( System.getenv( "TEST_DB_NAME" ) != null ? System.getenv( "TEST_DB_NAME" ) : "testdb" )
-					.withUsername( System.getenv( "TEST_DB_USER" ) != null ? System.getenv( "TEST_DB_USER" ) : "testuser" )
-					.withPassword( System.getenv( "TEST_DB_PASSWORD" ) != null ? System.getenv( "TEST_DB_PASSWORD" ) : "testpass" )
+					.withDatabaseName( System.getenv( "DB_NAME" ) != null ? System.getenv( "DB_NAME" ) : "skilltrack" )
+					.withUsername( System.getenv( "DB_USER" ) != null ? System.getenv( "DB_USER" ) : "skilluser" )
+					.withPassword( System.getenv( "DB_PASSWORD" ) != null ? System.getenv( "DB_PASSWORD" ) : "fireball" )
 					.withClasspathResourceMapping( "db/schema.sql", "/docker-entrypoint-initdb.d/schema.sql", org.testcontainers.containers.BindMode.READ_ONLY )
 					.withClasspathResourceMapping( "db/init.sql", "/docker-entrypoint-initdb.d/init.sql", org.testcontainers.containers.BindMode.READ_ONLY );
 
