@@ -1,4 +1,4 @@
-package com.sou.model;
+package com.sou.model.entity;
 
 import java.time.LocalDate;
 
@@ -12,8 +12,12 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
+@AllArgsConstructor
 @Data
 @Entity
 @Table( name = "learning_log" )
@@ -36,13 +40,4 @@ public class LearningLog {
 	
 	private LocalDate date;
 	
-	public LearningLog( User user, String content, String tags, LocalDate date ) {
-		this.user = user;
-		this.content = content;
-		this.tags = tags;
-		this.date = date;
-	}
-	
-	public LearningLog() {
-	}
 }

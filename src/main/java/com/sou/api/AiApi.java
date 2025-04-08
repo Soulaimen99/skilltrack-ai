@@ -10,8 +10,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-import com.sou.model.LearningLogInput;
-import com.sou.model.SummaryResponse;
+import com.sou.model.dto.LearningLogInput;
+import com.sou.model.dto.SummaryResponse;
 
 @Path( "/logs/summarize" )
 @Produces( MediaType.APPLICATION_JSON )

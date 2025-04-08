@@ -1,6 +1,11 @@
 package com.sou.api;
 
 public class Authentication {
-	protected static final String USERNAME = "sou";
-	protected static final String PASSWORD = "fireball";
+	public static final String USERNAME = System.getenv( "TEST_USER" ) != null
+			? System.getenv( "TEST_USER" )
+			: "sou";
+
+	public static final String PASSWORD = System.getenv( "TEST_PASSWORD" ) != null
+			? System.getenv( "TEST_PASSWORD" )
+			: "fireball";
 }

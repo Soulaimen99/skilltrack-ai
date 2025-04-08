@@ -1,4 +1,4 @@
-package com.sou.model;
+package com.sou.model.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,21 +10,23 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 import io.quarkus.security.jpa.RolesValue;
+import lombok.Data;
 
+@Data
 @Entity
 @Table( name = "user_roles" )
 public class Role {
 	
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
-	public Long id;
+	private Long id;
 	
 	@ManyToOne
 	@JoinColumn( name = "user_id", nullable = false )
-	public User user;
+	private User user;
 	
 	@RolesValue
 	@Column( nullable = false )
-	public String role;
+	private String role;
 	
 }

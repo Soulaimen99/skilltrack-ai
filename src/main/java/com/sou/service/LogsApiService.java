@@ -11,11 +11,13 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 
 import com.sou.api.LogsApi;
-import com.sou.model.LearningLog;
-import com.sou.model.LearningLogInput;
-import com.sou.model.User;
+import com.sou.model.dto.LearningLogInput;
+import com.sou.model.dto.LearningLogOutput;
+import com.sou.model.entity.LearningLog;
+import com.sou.model.entity.User;
 import com.sou.repository.LearningLogRepository;
 import com.sou.repository.UserRepository;
+import com.sou.util.LearningLogMapper;
 import io.quarkus.security.identity.SecurityIdentity;
 import org.slf4j.Logger;
 
@@ -38,7 +40,7 @@ public class LogsApiService implements LogsApi {
 	SecurityIdentity identity;
 	
 	@Override
-	public List<LearningLog> getLearningLogs() {
+	public List<LearningLogOutput> getLearningLogs() {
 		String username = identity.getPrincipal().getName();
 		logger.info( "Fetching learning logs for user: {}", username );
 		
@@ -48,15 +50,18 @@ public class LogsApiService implements LogsApi {
 			return List.of();
 		}
 		
-		List<LearningLog> logs = learningLogRepository.retrieveUserLogs( user.id );
+		List<LearningLog> logs = learningLogRepository.retrieveUserLogs( user.getId() );
 		logger.debug( "Retrieved {} logs for user: {}", logs.size(), username );
 		
-		return logs;
+		return logs.stream()
+					   .map( LearningLogMapper::toOutput )
+					   .toList();
+		
 	}
 	
 	@Override
 	@Transactional
-	public LearningLog addLearningLog( LearningLogInput input ) {
+	public LearningLogOutput addLearningLog( LearningLogInput input ) {
 		if ( input == null || input.getContent() == null || input.getContent().isBlank() ) {
 			logger.error( "Invalid log input: content is null or blank" );
 			throw new IllegalArgumentException( "Content must not be null or blank" );
@@ -71,6 +76,7 @@ public class LogsApiService implements LogsApi {
 		}
 		
 		LearningLog log = new LearningLog(
+				null,
 				user,
 				input.getContent(),
 				input.getTags(),
@@ -81,6 +87,6 @@ public class LogsApiService implements LogsApi {
 		learningLogRepository.persist( log );
 		
 		logger.info( "Log added successfully for user: {}", username );
-		return log;
+		return LearningLogMapper.toOutput( log );
 	}
 }

@@ -9,8 +9,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 
 import com.sou.api.AiApi;
-import com.sou.model.LearningLogInput;
-import com.sou.model.SummaryResponse;
+import com.sou.model.dto.LearningLogInput;
+import com.sou.model.dto.SummaryResponse;
 import org.slf4j.Logger;
 
 @ApplicationScoped

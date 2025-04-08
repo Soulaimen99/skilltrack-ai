@@ -2,7 +2,7 @@ package com.sou.repository;
 
 import jakarta.enterprise.context.ApplicationScoped;
 
-import com.sou.model.User;
+import com.sou.model.entity.User;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 
 @ApplicationScoped

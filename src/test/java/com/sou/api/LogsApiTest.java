@@ -1,13 +1,8 @@
 package com.sou.api;
 
-import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-
-import com.sou.model.LearningLogInput;
-import com.sou.repository.LearningLogRepository;
+import com.sou.model.dto.LearningLogInput;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 import static com.sou.api.Authentication.PASSWORD;
@@ -19,16 +14,7 @@ import static org.hamcrest.Matchers.not;
 
 @QuarkusTest
 public class LogsApiTest {
-	
-	@Inject
-	LearningLogRepository logRepo;
-	
-	@AfterEach
-	@Transactional
-	public void cleanUpTestData() {
-		logRepo.deleteTestData();
-	}
-	
+
 	@Test
 	void testAddLog() {
 		given()
@@ -43,7 +29,7 @@ public class LogsApiTest {
 				.body( "content", equalTo( "Studied JPA and Quarkus" ) )
 				.body( "tags", equalTo( "TEST_DATA" ) );
 	}
-	
+
 	@Test
 	void testAddInvalidLog() {
 		given()
@@ -55,9 +41,8 @@ public class LogsApiTest {
 				.then()
 				.statusCode( 400 )
 				.body( equalTo( "Content must not be null or blank" ) );
-		
 	}
-	
+
 	@Test
 	void testGetLogs() {
 		given()
@@ -68,7 +53,7 @@ public class LogsApiTest {
 				.post( "/logs" )
 				.then()
 				.statusCode( 200 );
-		
+
 		given()
 				.auth().basic( USERNAME, PASSWORD )
 				.when()

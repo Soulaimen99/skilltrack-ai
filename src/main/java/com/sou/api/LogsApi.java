@@ -12,8 +12,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 
-import com.sou.model.LearningLog;
-import com.sou.model.LearningLogInput;
+import com.sou.model.dto.LearningLogInput;
+import com.sou.model.dto.LearningLogOutput;
 
 @Path( "/logs" )
 @Produces( MediaType.APPLICATION_JSON )
@@ -22,9 +22,9 @@ import com.sou.model.LearningLogInput;
 public interface LogsApi {
 	
 	@GET
-	List<LearningLog> getLearningLogs();
+	List<LearningLogOutput> getLearningLogs();
 	
 	@POST
-	LearningLog addLearningLog( @Valid @NotNull LearningLogInput input );
+	LearningLogOutput addLearningLog( @Valid @NotNull LearningLogInput input );
 	
 }

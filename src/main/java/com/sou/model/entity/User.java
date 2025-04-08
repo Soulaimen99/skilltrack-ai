@@ -1,4 +1,4 @@
-package com.sou.model;
+package com.sou.model.entity;
 
 import java.util.List;
 
@@ -17,7 +17,9 @@ import io.quarkus.security.jpa.Password;
 import io.quarkus.security.jpa.Roles;
 import io.quarkus.security.jpa.UserDefinition;
 import io.quarkus.security.jpa.Username;
+import lombok.Data;
 
+@Data
 @Entity
 @Table( name = "users" )
 @UserDefinition
@@ -25,22 +27,22 @@ public class User {
 	
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
-	public Long id;
+	private Long id;
 	
 	@Username
 	@Column( unique = true, nullable = false )
-	public String username;
+	private String username;
 	
 	@Password
 	@Column( nullable = false )
-	public String password;
+	private String password;
 	
 	@Roles
 	@OneToMany( mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY )
-	public List<Role> roles;
+	private List<Role> roles;
 	
 	@OneToMany( mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY )
 	@JsonManagedReference
-	public List<LearningLog> learningLogs;
+	private List<LearningLog> learningLogs;
 	
 }

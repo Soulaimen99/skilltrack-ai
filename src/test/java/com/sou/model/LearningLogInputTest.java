@@ -1,5 +1,6 @@
 package com.sou.model;
 
+import com.sou.model.dto.LearningLogInput;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

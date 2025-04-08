@@ -23,7 +23,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/LearningLog'
+                  $ref: '#/components/schemas/LearningLogOutput'
 
     post:
       summary: Add a new learning log
@@ -42,7 +42,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/LearningLog'
+                $ref: '#/components/schemas/LearningLogOutput'
         '400':
           description: Invalid request. Please ensure all required fields are provided.
 
@@ -73,7 +73,7 @@ paths:
 
 components:
   schemas:
-    LearningLog:
+    LearningLogOutput:
       type: object
       description: Represents a user's learning log entry.
       properties:
@@ -81,6 +81,9 @@ components:
           type: integer
           format: int64
           description: Unique identifier of the learning log.
+        username:
+          type: string
+          description: The name of the user.
         content:
           type: string
           description: The main content of the learning log.

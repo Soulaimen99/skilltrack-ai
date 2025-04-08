@@ -1,7 +1,8 @@
-package com.sou.model;
+package com.sou.model.dto;
+
+import java.time.LocalDate;
 
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,12 +13,20 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @Builder
-public class LearningLogInput {
+public class LearningLogOutput {
+	
+	@NotNull
+	private Long id;
+	
+	@NotNull
+	private String username;
 	
 	@NotNull
 	private String content;
 	
-	@Size( max = 255 )
 	private String tags;
+	
+	@NotNull
+	private LocalDate date;
 	
 }

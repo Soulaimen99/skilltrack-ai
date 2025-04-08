@@ -2,7 +2,7 @@ package com.sou.api;
 
 import java.util.List;
 
-import com.sou.model.LearningLogInput;
+import com.sou.model.dto.LearningLogInput;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;

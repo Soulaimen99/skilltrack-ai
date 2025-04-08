@@ -10,27 +10,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      DB_NAME: ${{ secrets.DB_NAME }}
-      DB_USER: ${{ secrets.DB_USER }}
-      DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-
-    services:
-      postgres:
-        image: postgres:15
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_DB: ${{ secrets.DB_NAME }}
-          POSTGRES_USER: ${{ secrets.DB_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.DB_PASSWORD }}
-
-        options: >-
-          --health-cmd="pg_isready"
-          --health-interval=10s
-          --health-timeout=5s
-          --health-retries=5
-
     steps:
       - uses: actions/checkout@v4
 
@@ -40,22 +19,6 @@ jobs:
           java-version: 21
           distribution: temurin
           cache: maven
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          until pg_isready -h localhost -p 5432; do
-            echo "Waiting for PostgreSQL to be ready..."
-            sleep 2
-          done
-
-      - name: Create schema
-        run: |
-          sudo apt-get update && sudo apt-get install -y postgresql-client
-          PGPASSWORD=${{ secrets.DB_PASSWORD }}  psql -h localhost -U ${{ secrets.DB_USER }}  -d ${{ secrets.DB_NAME }}  -f src/main/resources/db/schema.sql
-
-      - name: Insert default data
-        run: |
-          PGPASSWORD=${{ secrets.DB_PASSWORD }}  psql -h localhost -U ${{ secrets.DB_USER }}  -d ${{ secrets.DB_NAME }}  -f src/main/resources/db/data.sql
 
       - name: Build and test
         run: ./mvnw clean verify -B

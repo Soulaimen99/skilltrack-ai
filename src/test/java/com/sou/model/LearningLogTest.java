@@ -2,6 +2,7 @@ package com.sou.model;
 
 import java.time.LocalDate;
 
+import com.sou.model.entity.LearningLog;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -21,7 +21,7 @@ quarkus:
         roles-allowed:
           roles-allowed: admin,user
 
-
+# OpenAI API Configuration
 openai:
   api:
     key: ${OPENAI_API_KEY}
