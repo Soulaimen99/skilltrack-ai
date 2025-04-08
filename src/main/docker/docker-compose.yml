@@ -1,23 +1,24 @@
 version: "3.9"
 
+name: skilltrack
 services:
   postgres:
     image: postgres:15
-    container_name: skilltrack-db
+    container_name: database
     restart: unless-stopped
     environment:
-      POSTGRES_USER: skilluser
-      POSTGRES_PASSWORD: fireball
-      POSTGRES_DB: skilltrack
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
       - "5432:5432"
     volumes:
-      - skilltrack-db-data:/var/lib/postgresql/data
+      - database-data:/var/lib/postgresql/data
     networks:
       - skilltrack-net
 
 volumes:
-  skilltrack-db-data:
+  database-data:
 
 networks:
   skilltrack-net:

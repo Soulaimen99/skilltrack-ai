@@ -1,11 +1,11 @@
 package com.sou.api;
 
-import java.util.List;
-
 import com.sou.model.dto.LearningLogInput;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static com.sou.api.Authentication.PASSWORD;
 import static com.sou.api.Authentication.USERNAME;
@@ -16,12 +16,12 @@ import static org.hamcrest.Matchers.equalTo;
 
 @QuarkusTest
 public class AiApiTest {
-	
+
 	@Test
 	void testSummarizeLogs() {
 		LearningLogInput log1 = new LearningLogInput( "Learned Quarkus basics", null );
 		LearningLogInput log2 = new LearningLogInput( "Explored JPA entities", null );
-		
+
 		given()
 				.auth().basic( USERNAME, PASSWORD )
 				.contentType( ContentType.JSON )
@@ -34,7 +34,7 @@ public class AiApiTest {
 				.body( "summary", containsString( "Learned Quarkus basics" ) )
 				.body( "summary", containsString( "Explored JPA entities" ) );
 	}
-	
+
 	@Test
 	void testSummarizeLogsEmptyInput() {
 		given()
@@ -46,6 +46,6 @@ public class AiApiTest {
 				.then()
 				.statusCode( 400 )
 				.body( equalTo( "Logs cannot be null or empty" ) );
-		
+
 	}
 }
