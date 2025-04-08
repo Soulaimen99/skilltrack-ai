@@ -1,6 +1,7 @@
 # 🚀 SkillTrack AI
 
-A Quarkus-based backend for tracking daily learning activities, summarizing them using AI, and managing logs via a REST API.
+A Quarkus-based backend for tracking daily learning activities, summarizing them using AI, and managing logs via a REST
+API.
 
 ---
 
@@ -14,7 +15,6 @@ A Quarkus-based backend for tracking daily learning activities, summarizing them
 - OpenAPI + Swagger UI
 - OpenAPI Generator (interface-only, jakarta-based)
 - JUnit 5 + RestAssured
-- Lombok for clean models
 
 ---
 
@@ -23,7 +23,6 @@ A Quarkus-based backend for tracking daily learning activities, summarizing them
 - Add and retrieve learning logs
 - Summarize logs using AI (OpenAI-ready)
 - API documented via Swagger UI
-- Clean and modern Quarkus setup with zero `javax.*`
 - Easily extendable and testable
 
 ---
@@ -43,12 +42,6 @@ cd skilltrack-ai
 ```bash
 docker-compose up -d
 ```
-
-Default DB credentials:
-
-- DB: `skilltrack`
-- User: `skilluser`
-- Password: ``
 
 ### 3. Run the App
 
@@ -90,15 +83,6 @@ The file `src/main/openapi/openapi.yml` defines your API and is used to generate
 ```
 
 No need to run the generator manually — it's integrated with the Maven build.
-
----
-
-## 🧠 Notes
-
-- OpenAPI code is generated to `target/generated-sources/openapi`
-- Models use Lombok (`@Data`) to simplify getters, setters, equals/hashCode
-- Hibernate auto-creates tables using `drop-and-create` mode
-- Ready to integrate OpenAI client with your API key
 
 ---
 
