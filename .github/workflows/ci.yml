@@ -9,7 +9,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -20,15 +19,19 @@ jobs:
           distribution: temurin
           cache: maven
 
-      - name: Set up environment variables
-        run: echo "TEST_USER=${{ secrets.TEST_USER }}" >> $GITHUB_ENV
-        env:
-          TEST_PASSWORD: ${{ secrets.TEST_PASSWORD }}
+      - name: Ensure Docker is running
+        run: echo "Docker is pre-installed and enabled on GitHub runner."
+
+      - name: Set up environment variables for Testcontainers
+        run: |
+          echo "DB_USER=${{ secrets.DB_USER }}" >> $GITHUB_ENV
+          echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> $GITHUB_ENV
+          echo "DB_NAME=${{ secrets.DB_NAME }}" >> $GITHUB_ENV
+
+      - name: Wait for Testcontainers to start
+        run: |
+          docker --version
+          echo "Testcontainers will handle the PostgreSQL database lifecycle."
 
       - name: Build and test
-        env:
-          TEST_DB_USER: ${{ secrets.DB_USER }}
-          TEST_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          TEST_DB_NAME: ${{ secrets.DB_NAME }}
-
         run: ./mvnw clean verify -B
