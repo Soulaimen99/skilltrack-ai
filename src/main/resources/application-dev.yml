@@ -1,0 +1,27 @@
+quarkus:
+  swagger-ui:
+    always-include: true
+    path: /swagger
+
+  datasource:
+    db-kind: postgresql
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    jdbc:
+      url: jdbc:postgresql://localhost:5432/${DB_NAME}
+
+  hibernate-orm:
+    database:
+      generation: update
+
+  http:
+    auth:
+      basic: true
+      policy:
+        roles-allowed:
+          roles-allowed: admin,user
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+    url: https://api.openai.com/v1/chat/completions
