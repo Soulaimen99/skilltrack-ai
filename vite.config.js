@@ -7,7 +7,6 @@ export default defineConfig({
   server: {
     proxy: {
       '/logs': 'http://localhost:8081',
-      '/summaries': 'http://localhost:8081',
     },
     port: 3000,
   }

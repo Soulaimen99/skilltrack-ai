@@ -1,7 +1,7 @@
-import './App.css';
 import { useKeycloak } from '@react-keycloak/web';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
+import './App.css';
 
 export default function App() {
   const { keycloak, initialized } = useKeycloak();
@@ -13,11 +13,11 @@ export default function App() {
   }
 
   return (
-    <>
+    <div className="container"> {/* this applies the same max-width and centering */}
       <Header />
-      <main style={{ width: '100%' }}>
+      <main>
         <Dashboard />
       </main>
-    </>
+    </div>
   );
 }

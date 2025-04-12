@@ -9,6 +9,11 @@ export default function Dashboard() {
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [loadingSummary, setLoadingSummary] = useState(false);
     const { keycloak } = useKeycloak();
+    const [activeTag, setActiveTag] = useState(null);
+
+    const allTags = Array.from(new Set(
+        logs.flatMap(log => log.tags?.split(',').map(t => t.trim()) || [])
+    )).filter(tag => tag);
 
     useEffect(() => {
         if (keycloak.authenticated) {
@@ -22,12 +27,15 @@ export default function Dashboard() {
             const res = await fetch('/logs', {
                 headers: { Authorization: `Bearer ${keycloak.token}` },
             });
+
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
             setLogs(data);
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Failed to fetch logs:', err);
-        } finally {
+        }
+        finally {
             setLoadingLogs(false);
         }
     };
@@ -43,12 +51,14 @@ export default function Dashboard() {
                 },
                 body: JSON.stringify({ content, tags }),
             });
+
             if (!res.ok) throw new Error(await res.text());
             const newLog = await res.json();
             setLogs((prev) => [...prev, newLog]);
             setContent('');
             setTags('');
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Error adding log:', err);
         }
     };
@@ -61,12 +71,15 @@ export default function Dashboard() {
                     Authorization: `Bearer ${keycloak.token}`,
                 },
             });
+
             if (res.ok) {
                 setLogs(prev => prev.filter(log => log.id !== id));
-            } else {
+            }
+            else {
                 console.error('Failed to delete log:', await res.text());
             }
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Error deleting log:', err);
         }
     };
@@ -74,7 +87,7 @@ export default function Dashboard() {
     const handleSummarize = async () => {
         setLoadingSummary(true);
         try {
-            const res = await fetch('/summaries', {
+            const res = await fetch('/logs/summarize', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -82,12 +95,15 @@ export default function Dashboard() {
                 },
                 body: JSON.stringify(logs),
             });
+
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
             setSummary(data.summary);
-        } catch (err) {
+        }
+        catch (err) {
             console.error('Error generating summary:', err);
-        } finally {
+        }
+        finally {
             setLoadingSummary(false);
         }
     };
@@ -95,26 +111,37 @@ export default function Dashboard() {
     return (
         <div className="container">
             <div>
-
-
+                <div className="tag-filter">
+                    <button onClick={() => setActiveTag(null)} className={!activeTag ? 'active' : ''}>All</button>
+                    {allTags.map(tag => (
+                        <button
+                            key={tag}
+                            onClick={() => setActiveTag(tag)}
+                            className={activeTag === tag ? 'active' : ''}
+                        >
+                            {tag}
+                        </button>
+                    ))}
+                </div>
                 <h2>Learning Logs</h2>
-
                 {loadingLogs ? (
                     <p>Loading logs...</p>
                 ) : (
                     <ul>
-                        {logs.map(log => (
-                            <li key={log.id}>
-                                <div className="log-content">
-                                    <div className="log-main">Content: {log.content}</div>
-                                    <div className="log-tags">Tags: {log.tags}</div>
-                                    <div className="log-footer">
-                                        <div className="log-date">{new Date(log.date).toLocaleString()}</div>
+                        {logs
+                            .filter(log => !activeTag || log.tags?.includes(activeTag))
+                            .map(log => (
+                                <li key={log.id}>
+                                    <div className="log-content">
+                                        <div className="log-main">Content: {log.content}</div>
+                                        <div className="log-tags">Tags: {log.tags}</div>
+                                        <div className="log-footer">
+                                            <div className="log-date">{new Date(log.date).toLocaleString()}</div>
+                                        </div>
                                     </div>
-                                </div>
-                                <button onClick={() => handleDelete(log.id)} title="Delete log">🗑️</button>
-                            </li>
-                        ))}
+                                    <button onClick={() => handleDelete(log.id)} title="Delete log">🗑️</button>
+                                </li>
+                            ))}
                     </ul>
                 )}
 
@@ -136,9 +163,7 @@ export default function Dashboard() {
                     <button type="submit">Add Log</button>
                 </form>
             </div>
-
             <div className="spacer"></div>
-
             <div>
                 <h3>Summary</h3>
                 <button onClick={handleSummarize} disabled={loadingSummary}>
