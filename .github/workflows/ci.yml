@@ -14,18 +14,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Verify OS and environment
-        run: uname -a && lsb_release -a
+      - name: Grant execute permission for Maven Wrapper
+        run: chmod +x ./mvnw
 
-      - name: Set up JDK 21 (Temurin Distribution)
+      - name: Verify Java setup
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 21
-          check-latest: true
 
-      - name: Verify Java Setup
-        run: java -version
+      - name: Verify Maven version
+        run: ./mvnw -v
 
       - name: Cache Maven dependencies
         uses: actions/cache@v3
@@ -35,8 +34,5 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven
 
-      - name: Verify Maven Version
-        run: ./mvnw -v
-
-      - name: Run Tests with H2 Test Profile
+      - name: Run Tests (H2 test profile)
         run: ./mvnw test -Dspring.profiles.active=test
