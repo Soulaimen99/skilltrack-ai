@@ -26,13 +26,12 @@ src/
 ├── main.jsx             # Entry point
 ├── App.css              # Global styles
 ├── components/
-│   ├── LoginForm.jsx    # Login UI and auth
-│   └── LogsPage.jsx     # View, add, delete, summarize logs
+│   └── MainPage.jsx     # View, add, delete, summarize logs
 ```
 
 ## 🌐 API
 
-- Expects backend running on **http://localhost:8080**
+- Expects backend running on **http://localhost:8081**
 - Uses **Basic Auth** via `Authorization` header
 - Communicates with endpoints:
   - `GET /logs`

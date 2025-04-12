@@ -1,52 +1,23 @@
-// src/App.jsx
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginForm from './components/LoginForm';
-import LogsPage from './components/LogsPage';
 import './App.css';
+import { useKeycloak } from '@react-keycloak/web';
+import Header from './components/Header';
+import Dashboard from './pages/Dashboard';
 
-function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [username, setUsername] = useState('');
+export default function App() {
+  const { keycloak, initialized } = useKeycloak();
 
-  useEffect(() => {
-    const auth = localStorage.getItem('auth');
-    if (auth) setIsLoggedIn(true);
-  }, []);
-
-  const handleLoginSuccess = (user) => {
-    setUsername(user);
-    setIsLoggedIn(true); 
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth');
-    setIsLoggedIn(false);
-  };
+  if (!initialized) return <p>Loading authentication...</p>;
+  if (!keycloak.authenticated) {
+    keycloak.login();
+    return null;
+  }
 
   return (
-    <Router>
-      <Routes>
-        <Route
-          path="/login"
-          element={
-            isLoggedIn
-              ? <Navigate to="/logs" />
-              : <LoginForm onLoginSuccess={handleLoginSuccess} />
-          }
-        />
-        <Route
-          path="/logs"
-          element={
-            isLoggedIn
-              ? <LogsPage username={username} onLogout={handleLogout} />
-              : <Navigate to="/login" />
-          }
-        />
-        <Route path="*" element={<Navigate to="/login" />} />
-      </Routes>
-    </Router>
+    <>
+      <Header />
+      <main style={{ width: '100%' }}>
+        <Dashboard />
+      </main>
+    </>
   );
 }
-
-export default App;
