@@ -18,12 +18,9 @@ public class LearningLog {
 	@Id
 	@GeneratedValue( strategy = GenerationType.IDENTITY )
 	private Long id;
-
 	@ManyToOne
 	private User user;
-
 	private String content;
 	private String tags;
 	private LocalDate date = LocalDate.now();
-
 }

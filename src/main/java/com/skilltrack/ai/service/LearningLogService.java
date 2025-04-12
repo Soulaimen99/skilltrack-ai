@@ -10,6 +10,7 @@ import java.util.Optional;
 
 @Service
 public class LearningLogService {
+
 	private final LearningLogRepository learningLogRepository;
 
 	public LearningLogService( LearningLogRepository learningLogRepository ) {
@@ -33,5 +34,4 @@ public class LearningLogService {
 			}
 		} );
 	}
-
 }
