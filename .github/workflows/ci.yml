@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify OS and environment
+        run: uname -a && lsb_release -a
+
+      - name: Set up JDK 21 (Temurin Distribution)
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: 21
+          check-latest: true
+
+      - name: Verify Java Setup
+        run: java -version
+
+      - name: Cache Maven dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-maven
+
+      - name: Verify Maven Version
+        run: ./mvnw -v
+
+      - name: Run Tests with H2 Test Profile
+        run: ./mvnw test -Dspring.profiles.active=test
