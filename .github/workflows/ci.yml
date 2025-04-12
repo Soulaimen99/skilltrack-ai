@@ -36,3 +36,5 @@ jobs:
 
       - name: Run Tests (H2 test profile)
         run: ./mvnw test -Dspring.profiles.active=test
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
