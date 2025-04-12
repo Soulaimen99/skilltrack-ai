@@ -39,7 +39,6 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 server: {
   proxy: {
     '/logs': 'http://localhost:8081',
-    '/logs/summarize': 'http://localhost:8081',
   }
 }
 ```
