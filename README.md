@@ -1,4 +1,3 @@
-```markdown
 # Skilltrack UI
 
 Frontend for the Skilltrack project built with **React** and **Vite**.
@@ -60,4 +59,3 @@ npm run preview # Preview production build
 - Credentials are stored temporarily in `localStorage` (`auth` key)
 - `vite.config.js` is set to use port 3000
 - Layout adjusts for login vs logs view
-```
