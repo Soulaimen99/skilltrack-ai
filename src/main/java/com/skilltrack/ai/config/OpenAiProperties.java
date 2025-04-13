@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 public class OpenAiProperties {
 
 	private String model;
+
 	private double temperature;
+
 	private int maxTokens;
 }

@@ -1,4 +1,23 @@
-/* Basic Reset */
+:root {
+    --bg: #f9f9f9;
+    --fg: #1e1e1e;
+    --accent: #0f172a;
+    --accent-hover: #1a2238;
+    --card: #fff;
+    --border: #ddd;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #121212;
+        --fg: #e5e5e5;
+        --accent: #818cf8;
+        --accent-hover: #a5b4fc;
+        --card: #1f1f1f;
+        --border: #333;
+    }
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -6,9 +25,20 @@
 }
 
 body {
-    font-family: sans-serif;
-    background: #f5f5f5;
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
     padding: 2rem;
+}
+
+.kc-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    background: var(--card);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+    border: 1px solid var(--border);
 }
 
 #kc-container-wrapper {
@@ -19,7 +49,7 @@ body {
 }
 
 #kc-container {
-    max-width: 700px;
+    max-width: 1000px;
     width: 100%;
     background: white;
     padding: 2rem;
@@ -27,46 +57,56 @@ body {
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
-#kc-header-wrapper {
+h1 {
+    font-size: 1.8rem;
     margin-bottom: 1.5rem;
 }
 
-#kc-page-title {
-    font-size: 1.8rem;
-    margin-bottom: 1rem;
-    color: #333;
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
 }
 
 input[type="text"],
 input[type="password"],
 input[type="email"] {
     width: 100%;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     padding: 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
     font: inherit;
+    background: var(--card);
+    color: var(--fg);
 }
 
-button,
-input[type="submit"] {
-    padding: 0.6rem 1rem;
-    background: #333;
+input[type="submit"],
+button {
+    padding: 0.6rem 1.2rem;
+    background: var(--accent);
     color: white;
     border: none;
-    border-radius: 4px;
+    border-radius: 6px;
     cursor: pointer;
     font: inherit;
+    transition: background 0.2s ease;
 }
 
-button:hover,
-input[type="submit"]:hover {
-    background: #555;
+input[type="submit"]:hover,
+button:hover {
+    background: var(--accent-hover);
 }
 
-.kc-feedback-text {
-    color: red;
-    margin-bottom: 1rem;
+a {
+    margin-left: 1rem;
+    text-decoration: none;
+    color: var(--accent);
+    font-weight: 500;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 .alert-error {
@@ -74,24 +114,26 @@ input[type="submit"]:hover {
     padding: 0.75rem;
     border-left: 4px solid red;
     border-radius: 4px;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     color: #900;
+}
+
+.kc-feedback-text {
+    color: red;
+    margin-bottom: 1rem;
 }
 
 #kc-form-options {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1rem;
-}
-
-#kc-info {
     margin-top: 1rem;
-    font-size: 0.9rem;
-    color: #555;
-    text-align: center;
 }
 
 .kc-logo-text {
     display: none;
+}
+
+.form-group {
+    margin-bottom: 1rem;
 }

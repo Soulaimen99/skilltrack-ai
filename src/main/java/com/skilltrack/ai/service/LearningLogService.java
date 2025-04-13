@@ -6,7 +6,7 @@ import com.skilltrack.ai.repository.LearningLogRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class LearningLogService {
@@ -26,12 +26,14 @@ public class LearningLogService {
 		return learningLogRepository.save( log );
 	}
 
-	public void deleteLog( User user, Long id ) {
-		Optional<LearningLog> log = learningLogRepository.findById( id );
-		log.ifPresent( l -> {
-			if ( l.getUser().getId().equals( user.getId() ) ) {
-				learningLogRepository.deleteById( id );
-			}
-		} );
+	public boolean deleteLog( User user, UUID id ) {
+		return learningLogRepository.findById( id )
+				.filter( log -> log.getUser().getId().equals( user.getId() ) )
+				.map( log -> {
+					learningLogRepository.delete( log );
+					return true;
+				} )
+				.orElse( false );
 	}
+
 }

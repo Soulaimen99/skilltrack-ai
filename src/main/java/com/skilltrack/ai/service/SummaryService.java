@@ -25,9 +25,7 @@ public class SummaryService {
 
 		String userPrompt = String.format( """
 				You are an intelligent learning assistant for a user named %s.
-				
 				Summarize the following personal learning reflections in a friendly and motivational tone.
-				
 				Reflections:
 				%s
 				""", username, reflections );

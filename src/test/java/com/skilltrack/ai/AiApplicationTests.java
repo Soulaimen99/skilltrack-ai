@@ -9,5 +9,4 @@ class AiApplicationTests {
 	@Test
 	void contextLoads() {
 	}
-
 }
