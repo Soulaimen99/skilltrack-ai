@@ -1,7 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useKeycloak } from '@react-keycloak/web';
+import DateFilter from './components/DateFilter';
+import TagFilter from './components/TagFilter';
+import LogList from './components/LogList';
+import SummaryBox from './components/SummaryBox';
+import { isDateInRange } from './utils/dateUtils';
 
 export default function Dashboard() {
+    const { keycloak } = useKeycloak();
+    const [allLogs, setAllLogs] = useState([]);
     const [logs, setLogs] = useState([]);
     const [content, setContent] = useState('');
     const [tags, setTags] = useState('');
@@ -9,17 +16,25 @@ export default function Dashboard() {
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [loadingSummary, setLoadingSummary] = useState(false);
     const [activeTag, setActiveTag] = useState(null);
-    const { keycloak } = useKeycloak();
+    const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
     const allTags = Array.from(new Set(
-        logs.flatMap(log => log.tags?.split(',').map(t => t.trim()) || [])
+        allLogs.flatMap(log => log.tags?.split(',').map(t => t.trim()) || [])
     )).filter(tag => tag);
 
     useEffect(() => {
-        if (keycloak.authenticated) {
-            fetchLogs();
-        }
+        if (keycloak.authenticated) fetchLogs();
     }, [keycloak]);
+
+    useEffect(() => {
+        const filtered = allLogs.filter(log => {
+            const matchesTag = !activeTag || (log.tags || '').split(',').map(t => t.trim()).includes(activeTag);
+            const inDateRange = isDateInRange(log.date, dateRange.from, dateRange.to);
+            return matchesTag && inDateRange;
+        });
+        setLogs(filtered);
+    }, [activeTag, dateRange, allLogs]);
+    
 
     const fetchLogs = async () => {
         setLoadingLogs(true);
@@ -29,7 +44,7 @@ export default function Dashboard() {
             });
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
-            setLogs(data);
+            setAllLogs(data);
         } catch (err) {
             console.error('Failed to fetch logs:', err);
         } finally {
@@ -51,7 +66,7 @@ export default function Dashboard() {
 
             if (!res.ok) throw new Error(await res.text());
             const newLog = await res.json();
-            setLogs((prev) => [...prev, newLog]);
+            setAllLogs(prev => [...prev, newLog]);
             setContent('');
             setTags('');
         } catch (err) {
@@ -63,12 +78,10 @@ export default function Dashboard() {
         try {
             const res = await fetch(`/logs/${id}`, {
                 method: 'DELETE',
-                headers: {
-                    Authorization: `Bearer ${keycloak.token}`,
-                },
+                headers: { Authorization: `Bearer ${keycloak.token}` },
             });
             if (res.ok) {
-                setLogs(prev => prev.filter(log => log.id !== id));
+                setAllLogs(prev => prev.filter(log => log.id !== id));
             } else {
                 console.error('Failed to delete log:', await res.text());
             }
@@ -88,7 +101,6 @@ export default function Dashboard() {
                 },
                 body: JSON.stringify(logs),
             });
-
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
             setSummary(data.summary);
@@ -101,44 +113,11 @@ export default function Dashboard() {
 
     return (
         <div className="container">
-            <div className="tag-filter">
-                <button onClick={() => setActiveTag(null)} className={!activeTag ? 'active' : ''}>All</button>
-                {allTags.map(tag => (
-                    <button
-                        key={tag}
-                        onClick={() => setActiveTag(tag)}
-                        className={activeTag === tag ? 'active' : ''}
-                    >
-                        {tag}
-                    </button>
-                ))}
-            </div>
+            <TagFilter allTags={allTags} activeTag={activeTag} setActiveTag={setActiveTag} />
+            <DateFilter dateRange={dateRange} setDateRange={setDateRange} />
 
             <h2>Learning Logs</h2>
-            {loadingLogs ? (
-                <p>Loading logs...</p>
-            ) : (
-                <ul>
-                    {logs
-                        .filter(log => !activeTag || log.tags?.includes(activeTag))
-                        .map(log => (
-                            <li key={log.id}>
-                                <div className="log-content">
-                                    <div className="log-main">
-                                        <span className="label">Content:</span>{log.content}
-                                    </div>
-                                    <div className="log-tags">
-                                        <span className="label">Tags:</span>{log.tags}
-                                    </div>
-                                    <div className="log-footer">
-                                        <span>{new Date(log.date).toLocaleString()}</span>
-                                    </div>
-                                </div>
-                                <button onClick={() => handleDelete(log.id)} title="Delete log">🗑️</button>
-                            </li>
-                        ))}
-                </ul>
-            )}
+            {loadingLogs ? <p>Loading logs...</p> : <LogList logs={logs} activeTag={activeTag} handleDelete={handleDelete} />}
 
             <h3>Add New Log</h3>
             <form onSubmit={handleAddLog}>
@@ -158,16 +137,7 @@ export default function Dashboard() {
                 <button type="submit">Add Log</button>
             </form>
 
-            <h3>Summary</h3>
-            <button onClick={handleSummarize} disabled={loadingSummary}>
-                {loadingSummary ? 'Summarizing...' : 'Generate Summary'}
-            </button>
-
-            {summary && (
-                <div className="summary">
-                    <pre>{summary}</pre>
-                </div>
-            )}
+            <SummaryBox summary={summary} loadingSummary={loadingSummary} handleSummarize={handleSummarize} />
         </div>
     );
 }

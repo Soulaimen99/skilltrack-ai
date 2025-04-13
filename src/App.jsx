@@ -1,6 +1,6 @@
 import { useKeycloak } from '@react-keycloak/web';
 import Header from './components/Header';
-import Dashboard from './pages/Dashboard';
+import Dashboard from './Dashboard';
 import './index.css';
 
 export default function App() {
