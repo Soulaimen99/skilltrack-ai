@@ -15,8 +15,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -51,9 +55,14 @@ public class LearningLogController {
 	}
 
 	@GetMapping
-	public List<LearningLogDto> getLogs( Authentication auth ) {
+	public List<LearningLogDto> getLogs(
+			@RequestParam( required = false ) String from,
+			@RequestParam( required = false ) String to,
+			Authentication auth ) {
 		User user = getUserFromAuth( auth );
-		return learningLogService.getLogs( user ).stream()
+		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
+		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
+		return learningLogService.getLogs( user, dtFrom, dtTo ).stream()
 				.map( LearningLogDto::from )
 				.toList();
 	}
