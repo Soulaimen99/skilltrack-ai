@@ -4,7 +4,7 @@ import DateFilter from './components/DateFilter';
 import TagFilter from './components/TagFilter';
 import LogList from './components/LogList';
 import SummaryBox from './components/SummaryBox';
-import { isDateInRange } from './utils/dateUtils';
+import { getTodayRange, isDateInRange } from './utils/dateUtils';
 
 export default function Dashboard() {
     const { keycloak } = useKeycloak();
@@ -16,7 +16,8 @@ export default function Dashboard() {
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [loadingSummary, setLoadingSummary] = useState(false);
     const [activeTag, setActiveTag] = useState(null);
-    const [dateRange, setDateRange] = useState({ from: '', to: '' });
+    const [presetRange, setPresetRange] = useState('today');
+    const [dateRange, setDateRange] = useState(getTodayRange());
 
     const allTags = Array.from(new Set(
         allLogs.flatMap(log => log.tags?.split(',').map(t => t.trim()) || [])
@@ -34,12 +35,15 @@ export default function Dashboard() {
         });
         setLogs(filtered);
     }, [activeTag, dateRange, allLogs]);
-    
+
 
     const fetchLogs = async () => {
         setLoadingLogs(true);
         try {
-            const res = await fetch('/logs', {
+            const params = new URLSearchParams();
+            if (dateRange.from) params.append('from', dateRange.from);
+            if (dateRange.to) params.append('to', dateRange.to);
+            const res = await fetch(`/logs?${params.toString()}`, {
                 headers: { Authorization: `Bearer ${keycloak.token}` },
             });
             if (!res.ok) throw new Error(await res.text());
@@ -114,7 +118,7 @@ export default function Dashboard() {
     return (
         <div className="container">
             <TagFilter allTags={allTags} activeTag={activeTag} setActiveTag={setActiveTag} />
-            <DateFilter dateRange={dateRange} setDateRange={setDateRange} />
+            <DateFilter dateRange={dateRange} setDateRange={setDateRange} presetRange={presetRange} setPresetRange={setPresetRange} />
 
             <h2>Learning Logs</h2>
             {loadingLogs ? <p>Loading logs...</p> : <LogList logs={logs} activeTag={activeTag} handleDelete={handleDelete} />}
@@ -134,10 +138,10 @@ export default function Dashboard() {
                     onChange={(e) => setTags(e.target.value)}
                     placeholder="Tags (comma separated)"
                 />
-                <button type="submit">Add Log</button>
+                <button type="submit" disabled={content.length === 0}>Add Log</button>
             </form>
 
-            <SummaryBox summary={summary} loadingSummary={loadingSummary} handleSummarize={handleSummarize} />
+            <SummaryBox summary={summary} loadingSummary={loadingSummary} handleSummarize={handleSummarize} logs={logs} dateRange={dateRange} />
         </div>
     );
 }
