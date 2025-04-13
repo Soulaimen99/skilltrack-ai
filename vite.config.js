@@ -7,6 +7,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/logs': 'http://localhost:8081',
+      '/api/auth': 'http://localhost:8081',
     },
     port: 3000,
   }
