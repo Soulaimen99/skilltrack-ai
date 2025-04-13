@@ -5,6 +5,7 @@ import com.skilltrack.ai.model.User;
 import com.skilltrack.ai.repository.LearningLogRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -17,8 +18,15 @@ public class LearningLogService {
 		this.learningLogRepository = learningLogRepository;
 	}
 
-	public List<LearningLog> getLogs( User user ) {
-		return learningLogRepository.findByUser( user );
+	public List<LearningLog> getLogs( User user, LocalDateTime dtFrom, LocalDateTime dtTo ) {
+		List<LearningLog> learningLogs = learningLogRepository.findByUser( user );
+		if ( dtFrom != null || dtTo != null ) {
+			learningLogs = learningLogs.stream().filter( log ->
+					( dtFrom == null || log.getDate().isAfter( dtFrom ) ) &&
+							( dtTo == null || log.getDate().isBefore( dtTo ) )
+			).toList();
+		}
+		return learningLogs;
 	}
 
 	public LearningLog addLog( User user, LearningLog log ) {
