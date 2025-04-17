@@ -2,6 +2,10 @@ import React from 'react';
 import { getTodayRange, getThisWeekRange, getThisMonthRange } from '../utils/dateUtils';
 
 export default function DateFilter({ dateRange, setDateRange, presetRange, setPresetRange }) {
+    const setAll = () => {
+        setDateRange('');
+        setPresetRange('all');
+    }
     const setToday = () => {
         setDateRange(getTodayRange());
         setPresetRange('today');
@@ -18,6 +22,7 @@ export default function DateFilter({ dateRange, setDateRange, presetRange, setPr
     return (
         <div className="date-filter">
             <div style={{ marginBottom: '0.5rem' }}>
+                <button onClick={setAll} className={presetRange === 'all' ? 'active' : ''}>All</button>
                 <button onClick={setToday} className={presetRange === 'today' ? 'active' : ''}>Today</button>
                 <button onClick={setThisWeek} className={presetRange === 'week' ? 'active' : ''}>This Week</button>
                 <button onClick={setThisMonth} className={presetRange === 'month' ? 'active' : ''}>This Month</button>

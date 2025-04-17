@@ -4,7 +4,7 @@ import DateFilter from './components/DateFilter';
 import TagFilter from './components/TagFilter';
 import LogList from './components/LogList';
 import SummaryBox from './components/SummaryBox';
-import { getTodayRange, isDateInRange } from './utils/dateUtils';
+import { isDateInRange } from './utils/dateUtils';
 
 export default function Dashboard() {
     const { keycloak } = useKeycloak();
@@ -13,11 +13,12 @@ export default function Dashboard() {
     const [content, setContent] = useState('');
     const [tags, setTags] = useState('');
     const [summary, setSummary] = useState('');
+    const [remaining, setRemaining] = useState('');
     const [loadingLogs, setLoadingLogs] = useState(false);
     const [loadingSummary, setLoadingSummary] = useState(false);
     const [activeTag, setActiveTag] = useState(null);
-    const [presetRange, setPresetRange] = useState('today');
-    const [dateRange, setDateRange] = useState(getTodayRange());
+    const [presetRange, setPresetRange] = useState('all');
+    const [dateRange, setDateRange] = useState('');
 
     const allTags = Array.from(new Set(
         allLogs.flatMap(log => log.tags?.split(',').map(t => t.trim()) || [])
@@ -105,9 +106,11 @@ export default function Dashboard() {
                 },
                 body: JSON.stringify(logs),
             });
+            const remaining = res.headers.get("X-RateLimit-Remaining");
             if (!res.ok) throw new Error(await res.text());
             const data = await res.json();
             setSummary(data.summary);
+            setRemaining(remaining);
         } catch (err) {
             console.error('Error generating summary:', err);
         } finally {
@@ -141,7 +144,14 @@ export default function Dashboard() {
                 <button type="submit" disabled={content.length === 0}>Add Log</button>
             </form>
 
-            <SummaryBox summary={summary} loadingSummary={loadingSummary} handleSummarize={handleSummarize} logs={logs} dateRange={dateRange} />
+            <SummaryBox
+                summary={summary}
+                loadingSummary={loadingSummary}
+                handleSummarize={handleSummarize}
+                logs={logs}
+                dateRange={dateRange}
+                remaining={remaining}
+            />
         </div>
     );
 }
