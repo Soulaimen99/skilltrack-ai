@@ -18,14 +18,23 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+	private static final String[] SWAGGER_WHITELIST = {
+			"/swagger-ui.html",
+			"/swagger-ui/**",
+			"/v3/api-docs/**",
+			"/v3/api-docs",
+			"/webjars/**"
+	};
+
 	@Bean
 	public SecurityFilterChain securityFilterChain( HttpSecurity http ) throws Exception {
 		http
 				.cors( withDefaults() )
 				.csrf( AbstractHttpConfigurer::disable )
 				.authorizeHttpRequests( auth -> auth
+						.requestMatchers( SWAGGER_WHITELIST ).permitAll()
 						.requestMatchers( "/logs/**", "/api/auth/**" ).authenticated()
-						.anyRequest().permitAll()
+						.anyRequest().authenticated()
 				)
 				.oauth2ResourceServer( oauth2 -> oauth2
 						.jwt( jwt -> jwt.jwtAuthenticationConverter( jwtAuthenticationConverter() ) )
