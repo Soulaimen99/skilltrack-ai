@@ -16,4 +16,12 @@ public record LearningLogDto( UUID id, String username, String content, String t
 				log.getDate()
 		);
 	}
+
+	public LearningLog toEntity() {
+		LearningLog log = new LearningLog();
+		log.setContent( this.content );
+		log.setTags( this.tags );
+		log.setDate( this.date );
+		return log;
+	}
 }

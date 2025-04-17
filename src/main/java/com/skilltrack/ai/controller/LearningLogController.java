@@ -4,8 +4,11 @@ import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.model.LearningLog;
 import com.skilltrack.ai.model.User;
 import com.skilltrack.ai.service.LearningLogService;
+import com.skilltrack.ai.service.SummaryRateLimiter;
 import com.skilltrack.ai.service.SummaryService;
 import com.skilltrack.ai.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
@@ -25,6 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+@SecurityRequirement( name = "bearerAuth" )
 @RestController
 @RequestMapping( "/logs" )
 public class LearningLogController {
@@ -35,10 +39,13 @@ public class LearningLogController {
 
 	private final SummaryService summaryService;
 
-	public LearningLogController( LearningLogService learningLogService, UserService userService, SummaryService summaryService ) {
+	private final SummaryRateLimiter summaryRateLimiter;
+
+	public LearningLogController( LearningLogService learningLogService, UserService userService, SummaryService summaryService, SummaryRateLimiter summaryRateLimiter ) {
 		this.learningLogService = learningLogService;
 		this.userService = userService;
 		this.summaryService = summaryService;
+		this.summaryRateLimiter = summaryRateLimiter;
 	}
 
 	private static String getClaim( JwtAuthenticationToken jwt, String key ) {
@@ -55,41 +62,53 @@ public class LearningLogController {
 	}
 
 	@GetMapping
-	public List<LearningLogDto> getLogs(
+	public ResponseEntity<List<LearningLogDto>> getLogs(
 			@RequestParam( required = false ) String from,
 			@RequestParam( required = false ) String to,
 			Authentication auth ) {
 		User user = getUserFromAuth( auth );
 		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
 		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
-		return learningLogService.getLogs( user, dtFrom, dtTo ).stream()
+		List<LearningLogDto> logs = learningLogService.getLogs( user, dtFrom, dtTo ).stream()
 				.map( LearningLogDto::from )
 				.toList();
+
+		return ResponseEntity.ok( logs );
 	}
 
 	@PostMapping
-	public LearningLog addLog( @RequestBody LearningLog log, Authentication auth ) {
+	public ResponseEntity<LearningLogDto> addLog( @RequestBody LearningLogDto logDto, Authentication auth ) {
 		User user = getUserFromAuth( auth );
-		return learningLogService.addLog( user, log );
+		LearningLog log = learningLogService.addLog( user, logDto.toEntity() );
+
+		return ResponseEntity.status( HttpStatus.CREATED ).body( LearningLogDto.from( log ) );
 	}
 
 	@DeleteMapping( "/{id}" )
 	public ResponseEntity<Void> deleteLog( @PathVariable UUID id, Authentication auth ) {
 		User user = getUserFromAuth( auth );
 		boolean deleted = learningLogService.deleteLog( user, id );
+
 		return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
 	}
 
 	@PostMapping( "/summarize" )
-	public ResponseEntity<Map<String, String>> summarizeLogs( @RequestBody List<LearningLog> logs, Authentication auth ) {
+	public ResponseEntity<Map<String, String>> summarizeLogs( @RequestBody List<LearningLogDto> logsDto, Authentication auth ) {
 		User user = getUserFromAuth( auth );
+		String username = user.getUsername();
 
-		List<String> contents = logs.stream()
-				.map( LearningLog::getContent )
+		if ( !summaryRateLimiter.allow( username ) ) {
+			return ResponseEntity.status( HttpStatus.TOO_MANY_REQUESTS )
+					.body( Map.of( "error", "You have reached your daily summary limit. Try again tomorrow." ) );
+		}
+
+		List<String> contents = logsDto.stream()
+				.map( LearningLogDto::content )
 				.filter( line -> line != null && !line.isBlank() )
 				.toList();
-
 		String summary = summaryService.summarize( user.getUsername(), contents );
-		return ResponseEntity.ok( Map.of( "summary", summary ) );
+
+		return ResponseEntity.ok().header( "X-RateLimit-Remaining", String.valueOf( summaryRateLimiter.remaining( username ) ) )
+				.body( Map.of( "summary", summary ) );
 	}
 }

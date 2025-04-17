@@ -1,169 +1,176 @@
 package com.skilltrack.ai.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.skilltrack.ai.model.LearningLog;
 import com.skilltrack.ai.model.User;
 import com.skilltrack.ai.service.LearningLogService;
+import com.skilltrack.ai.service.SummaryRateLimiter;
 import com.skilltrack.ai.service.SummaryService;
 import com.skilltrack.ai.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-import static org.hamcrest.Matchers.containsString;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles( "test" )
+@WebMvcTest( LearningLogController.class )
+@Import( LearningLogControllerTest.TestConfig.class )
 public class LearningLogControllerTest {
 
 	@Autowired
 	private MockMvc mockMvc;
 
-	@MockBean
+	@Autowired
 	private LearningLogService learningLogService;
 
-	@MockBean
-	private UserService userService;
-
-	@MockBean
+	@Autowired
 	private SummaryService summaryService;
 
 	@Autowired
-	private ObjectMapper objectMapper;
+	private SummaryRateLimiter summaryRateLimiter;
+
+	@Autowired
+	private UserService userService;
 
 	@BeforeEach
-	void setUp() {
-		User mockUser = new User();
-		mockUser.setId( UUID.randomUUID() );
-		mockUser.setUsername( "testuser" );
-		mockUser.setEmail( "testuser@example.com" );
-
-		when( userService.getOrCreate( "testuser", "testuser@example.com" ) ).thenReturn( mockUser );
-		when( userService.getOrUpdate( "testuser", "testuser@example.com" ) ).thenReturn( mockUser );
-
-		when( summaryService.summarize( eq( "testuser" ), anyList() ) ).thenReturn( "Generated Summary" );
+	void setup() {
+		Mockito.reset( learningLogService, summaryService, summaryRateLimiter, userService );
 	}
 
-	@Disabled
-	@Test
-	@WithMockUser( username = "testuser" )
-	void shouldReturnEmptyLogsInitially() throws Exception {
-		when( userService.getOrUpdate( eq( "testuser" ), any() ) ).thenReturn( new User() );
-		when( learningLogService.getLogs( any(), LocalDateTime.now(), LocalDateTime.now() ) ).thenReturn( List.of() );
+	private Jwt getMockJwt( String username, String email ) {
+		return Jwt.withTokenValue( "fake-token" )
+				.header( "alg", "none" )
+				.claim( "preferred_username", username )
+				.claim( "email", email )
+				.build();
+	}
 
-		mockMvc.perform( get( "/logs" ) )
+	@Test
+	void testGetLogsReturnsList() throws Exception {
+		String username = "testuser";
+		String email = "test@example.com";
+		User user = new User();
+		user.setUsername( username );
+		user.setEmail( email );
+
+		LearningLog log = new LearningLog();
+		log.setContent( "Studied testing" );
+		log.setUser( user );
+
+		Mockito.when( userService.getOrUpdate( username, email ) ).thenReturn( user );
+		Mockito.when( learningLogService.getLogs( Mockito.eq( user ), Mockito.any(), Mockito.any() ) )
+				.thenReturn( List.of( log ) );
+
+		mockMvc.perform( get( "/logs" )
+						.with( SecurityMockMvcRequestPostProcessors.jwt().jwt( getMockJwt( username, email ) ) ) )
 				.andExpect( status().isOk() )
-				.andExpect( content().contentTypeCompatibleWith( MediaType.APPLICATION_JSON ) );
+				.andExpect( jsonPath( "$[0].content" ).value( "Studied testing" ) );
 	}
 
 	@Test
-	@WithMockUser( username = "testuser" )
-	void shouldAddAndReturnLog() throws Exception {
-		String content = "Test log content";
-		String tags = "test";
+	void testAddLogCreatesLog() throws Exception {
+		String username = "testuser";
+		String email = "test@example.com";
+		User user = new User();
+		user.setUsername( username );
+		user.setEmail( email );
 
-		User mockUser = new User();
-		LearningLog mockLog = createMockLog( UUID.randomUUID(), content, tags );
+		LearningLog inputLog = new LearningLog();
+		inputLog.setContent( "New log" );
+		inputLog.setUser( user );
 
-		when( userService.getOrUpdate( eq( "testuser" ), any() ) ).thenReturn( mockUser );
-		when( learningLogService.addLog( eq( mockUser ), any() ) ).thenReturn( mockLog );
-
-		String body = generateLearningLogJson( content, tags );
+		Mockito.when( userService.getOrUpdate( username, email ) ).thenReturn( user );
+		Mockito.when( learningLogService.addLog( Mockito.eq( user ), Mockito.any() ) ).thenReturn( inputLog );
 
 		mockMvc.perform( post( "/logs" )
 						.contentType( MediaType.APPLICATION_JSON )
-						.content( body ) )
-				.andExpect( status().isOk() )
-				.andExpect( jsonPath( "$.content" ).value( content ) )
-				.andExpect( jsonPath( "$.tags" ).value( tags ) );
+						.content( """
+								{
+								    "content": "New log"
+								}
+								""" )
+						.with( SecurityMockMvcRequestPostProcessors.jwt().jwt( getMockJwt( username, email ) ) ) )
+				.andExpect( status().isCreated() )
+				.andExpect( jsonPath( "$.content" ).value( "New log" ) );
 	}
 
-	@Disabled
 	@Test
-	@WithMockUser( username = "testuser" )
-	void shouldDeleteLogIfExists() throws Exception {
-		String content = "To be deleted";
-		String tags = "delete";
+	void testDeleteLog() throws Exception {
+		String username = "testuser";
+		String email = "test@example.com";
+		UUID id = UUID.randomUUID();
+		User user = new User();
+		user.setUsername( username );
+		user.setEmail( email );
 
-		User mockUser = new User();
-		UUID mockId = UUID.randomUUID();
-		LearningLog mockLog = createMockLog( mockId, content, tags );
+		Mockito.when( userService.getOrUpdate( username, email ) ).thenReturn( user );
+		Mockito.when( learningLogService.deleteLog( user, id ) ).thenReturn( true );
 
-		when( userService.getOrUpdate( eq( "testuser" ), any() ) ).thenReturn( mockUser );
-		when( learningLogService.addLog( eq( mockUser ), any() ) ).thenReturn( mockLog );
-
-		String body = generateLearningLogJson( content, tags );
-
-		String response = mockMvc.perform( post( "/logs" )
-						.contentType( MediaType.APPLICATION_JSON )
-						.content( body ) )
-				.andExpect( status().isOk() )
-				.andReturn().getResponse().getContentAsString();
-
-		String logId = objectMapper.readTree( response ).get( "id" ).asText(); // UUID as string
-
-		mockMvc.perform( delete( "/logs/" + logId ) )
-				.andExpect( status().isNoContent() ); // changed to 204 if your controller returns that
+		mockMvc.perform( delete( "/logs/" + id )
+						.with( SecurityMockMvcRequestPostProcessors.jwt().jwt( getMockJwt( username, email ) ) ) )
+				.andExpect( status().isNoContent() );
 	}
 
-	@Disabled
 	@Test
-	@WithMockUser( username = "testuser" )
-	void shouldGenerateSummaryFromLogs() throws Exception {
-		LearningLog log = createMockLog( null, "Learned H2 testing", "springboot" );
+	void testSummarizeLogsLimitExceeded() throws Exception {
+		String username = "testuser";
+		String email = "test@example.com";
+		User user = new User();
+		user.setUsername( username );
+		user.setEmail( email );
 
-		String logsJson = objectMapper.writeValueAsString( List.of( log ) );
-
-		when( summaryService.summarize( eq( "testuser" ), anyList() ) )
-				.thenReturn( "testuser has been learning about H2 testing with Spring Boot." );
+		Mockito.when( userService.getOrUpdate( username, email ) ).thenReturn( user );
+		Mockito.when( summaryRateLimiter.allow( username ) ).thenReturn( false );
 
 		mockMvc.perform( post( "/logs/summarize" )
 						.contentType( MediaType.APPLICATION_JSON )
-						.content( logsJson ) )
-				.andExpect( status().isOk() )
-				.andExpect( jsonPath( "$.summary" ).exists() )
-				.andExpect( jsonPath( "$.summary" ).isString() )
-				.andExpect( jsonPath( "$.summary", containsString( "H2 testing" ) ) );
+						.content( """
+								[
+								    { "content": "Line 1" },
+								    { "content": "Line 2" }
+								]
+								""" )
+						.with( SecurityMockMvcRequestPostProcessors.jwt().jwt( getMockJwt( username, email ) ) ) )
+				.andExpect( status().isTooManyRequests() )
+				.andExpect( jsonPath( "$.error" ).exists() );
 	}
 
-	private String generateLearningLogJson( String content, String tags ) throws JsonProcessingException {
-		LearningLog log = new LearningLog();
-		log.setContent( content );
-		log.setTags( tags );
-		log.setDate( LocalDateTime.now() );
-		return objectMapper.writeValueAsString( log );
-	}
+	@TestConfiguration
+	static class TestConfig {
 
-	private LearningLog createMockLog( UUID id, String content, String tags ) {
-		LearningLog log = new LearningLog();
-		log.setId( id );
-		log.setContent( content );
-		log.setTags( tags );
-		log.setDate( LocalDateTime.now() );
-		return log;
+		@Bean
+		public LearningLogService learningLogService() {
+			return Mockito.mock( LearningLogService.class );
+		}
+
+		@Bean
+		public SummaryService summaryService() {
+			return Mockito.mock( SummaryService.class );
+		}
+
+		@Bean
+		public SummaryRateLimiter summaryRateLimiter() {
+			return Mockito.mock( SummaryRateLimiter.class );
+		}
+
+		@Bean
+		public UserService userService() {
+			return Mockito.mock( UserService.class );
+		}
 	}
 }
