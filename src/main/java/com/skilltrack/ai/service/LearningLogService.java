@@ -3,35 +3,36 @@ package com.skilltrack.ai.service;
 import com.skilltrack.ai.entity.LearningLog;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.repository.LearningLogRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 @Service
 public class LearningLogService {
 
-	private final LearningLogRepository repo;
+	private final LearningLogRepository learningLogRepository;
 
-	public LearningLogService( LearningLogRepository repo ) {
-		this.repo = repo;
+	public LearningLogService( LearningLogRepository learningLogRepository ) {
+		this.learningLogRepository = learningLogRepository;
 	}
 
-	public List<LearningLog> getLogs( User user, LocalDateTime from, LocalDateTime to ) {
-		return repo.findByUser( user ).stream()
-				.filter( log -> ( from == null || log.getCreatedAt().isAfter( from ) ) &&
-						( to == null || log.getCreatedAt().isBefore( to ) ) )
-				.toList();
+	public Page<LearningLog> getLogs( User user, LocalDateTime from, LocalDateTime to, Pageable pageable ) {
+		if ( from != null && to != null ) {
+			return learningLogRepository.findByUserAndCreatedAtBetween( user, from, to, pageable );
+		}
+		return learningLogRepository.findByUser( user, pageable );
 	}
 
 	public LearningLog addLog( LearningLog log ) {
-		return repo.save( log );
+		return learningLogRepository.save( log );
 	}
 
 	public boolean deleteLog( User user, UUID id ) {
-		return repo.findById( id ).filter( log -> log.getUser().getId().equals( user.getId() ) ).map( l -> {
-			repo.delete( l );
+		return learningLogRepository.findById( id ).filter( log -> log.getUser().getId().equals( user.getId() ) ).map( l -> {
+			learningLogRepository.delete( l );
 			return true;
 		} ).orElse( false );
 	}

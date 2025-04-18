@@ -1,11 +1,17 @@
 package com.skilltrack.ai.controller;
 
 import com.skilltrack.ai.dto.LearningLogDto;
+import com.skilltrack.ai.dto.PagedLogsResponse;
+import com.skilltrack.ai.entity.LearningLog;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.service.LearningLogService;
 import com.skilltrack.ai.service.SummaryService;
 import com.skilltrack.ai.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -31,14 +37,14 @@ import java.util.UUID;
 @SecurityRequirement( name = "bearerAuth" )
 public class LearningLogController {
 
-	private final LearningLogService logService;
+	private final LearningLogService learningLogService;
 
 	private final UserService userService;
 
 	private final SummaryService summaryService;
 
-	public LearningLogController( LearningLogService logService, UserService userService, SummaryService summaryService ) {
-		this.logService = logService;
+	public LearningLogController( LearningLogService learningLogService, UserService userService, SummaryService summaryService ) {
+		this.learningLogService = learningLogService;
 		this.userService = userService;
 		this.summaryService = summaryService;
 	}
@@ -53,24 +59,39 @@ public class LearningLogController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<LearningLogDto>> getLogs( @RequestParam( required = false ) String from,
-	                                                     @RequestParam( required = false ) String to,
-	                                                     Authentication auth ) {
+	public ResponseEntity<PagedLogsResponse> getLogs( @RequestParam( required = false ) String from,
+	                                                  @RequestParam( required = false ) String to,
+	                                                  @RequestParam( defaultValue = "0" ) int page,
+	                                                  @RequestParam( defaultValue = "10" ) int size,
+	                                                  Authentication auth ) {
 		User user = getUser( auth );
-		LocalDateTime fromDate = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
-		LocalDateTime toDate = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
-		return ResponseEntity.ok( logService.getLogs( user, fromDate, toDate ).stream().map( LearningLogDto::from ).toList() );
+		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
+		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
+		Pageable pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
+		Page<LearningLog> logPage = learningLogService.getLogs( user, dtFrom, dtTo, pageable );
+
+		List<LearningLogDto> content = logPage.getContent().stream()
+				.map( LearningLogDto::from )
+				.toList();
+
+		return ResponseEntity.ok( new PagedLogsResponse(
+				content,
+				logPage.getNumber(),
+				logPage.getSize(),
+				logPage.getTotalPages(),
+				logPage.getTotalElements()
+		) );
 	}
 
 	@PostMapping
 	public ResponseEntity<LearningLogDto> addLog( @RequestBody LearningLogDto dto, Authentication auth ) {
 		return ResponseEntity.status( HttpStatus.CREATED )
-				.body( LearningLogDto.from( logService.addLog( dto.toEntity( getUser( auth ) ) ) ) );
+				.body( LearningLogDto.from( learningLogService.addLog( dto.toEntity( getUser( auth ) ) ) ) );
 	}
 
 	@DeleteMapping( "/{id}" )
 	public ResponseEntity<Void> deleteLog( @PathVariable UUID id, Authentication auth ) {
-		return logService.deleteLog( getUser( auth ), id ) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+		return learningLogService.deleteLog( getUser( auth ), id ) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
 	}
 
 	@PostMapping( "/summarize" )
