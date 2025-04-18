@@ -1,47 +1,44 @@
 package com.skilltrack.ai.service;
 
+import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.repository.SummaryUsageRepository;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class SummaryRateLimiter {
 
-	private final Map<String, UserSummaryLimit> usageMap = new ConcurrentHashMap<>();
+	private final SummaryUsageRepository repo;
+
+	private final SummaryUsageInsertService insertService;
 
 	@Value( "${summary.limit.daily:10}" )
 	private int dailyLimit;
 
-	public synchronized boolean allow( String username ) {
+	public SummaryRateLimiter( SummaryUsageRepository repo, SummaryUsageInsertService insertService ) {
+		this.repo = repo;
+		this.insertService = insertService;
+	}
+
+	public boolean allow( User user ) {
 		LocalDate today = LocalDate.now();
-		UserSummaryLimit usage = usageMap.computeIfAbsent( username, u -> new UserSummaryLimit() );
+		if ( repo.tryIncrement( user, today, dailyLimit ) > 0 ) return true;
 
-		if ( usage.date == null || !usage.date.equals( today ) ) {
-			usage.date = today;
-			usage.count = 0;
+		try {
+			insertService.insertNewUsage( user );
+			return true;
 		}
-
-		if ( usage.count >= dailyLimit ) {
-			return false;
+		catch ( DataIntegrityViolationException e ) {
+			return repo.tryIncrement( user, today, dailyLimit ) > 0;
 		}
-
-		usage.count++;
-		return true;
 	}
 
-	public int remaining( String username ) {
-		UserSummaryLimit usage = usageMap.get( username );
-		if ( usage == null || !LocalDate.now().equals( usage.date ) ) return dailyLimit;
-		return Math.max( 0, dailyLimit - usage.count );
-	}
-
-	private static class UserSummaryLimit {
-
-		int count;
-
-		LocalDate date;
+	public int remaining( User user ) {
+		return repo.findByUserAndUsageDate( user, LocalDate.now() )
+				.map( u -> Math.max( 0, dailyLimit - u.getCount() ) )
+				.orElse( dailyLimit );
 	}
 }

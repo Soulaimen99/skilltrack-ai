@@ -1,10 +1,11 @@
 package com.skilltrack.ai.service;
 
-import org.springframework.ai.chat.model.ChatResponse;
+import com.skilltrack.ai.entity.User;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,37 +14,35 @@ import java.util.stream.Collectors;
 @Service
 public class SummaryService {
 
-	private static final String SUMMARY_PROMPT = """
-			You are an intelligent learning assistant for a user named %s.
-			Summarize the following personal learning reflections in a friendly and motivational tone.
-			Include a short "Next Step" section with 1 action the user should take next.
-			
-			Reflections:
-			%s
-			""";
-
 	private final OpenAiChatModel chatModel;
 
-	@Autowired
-	public SummaryService( OpenAiChatModel chatModel ) {
+	private final SummaryRateLimiter rateLimiter;
+
+	public SummaryService( OpenAiChatModel chatModel, SummaryRateLimiter rateLimiter ) {
 		this.chatModel = chatModel;
+		this.rateLimiter = rateLimiter;
 	}
 
-	/**
-	 * Summarizes the given learning logs for the specified user.
-	 *
-	 * @param username the username (for context/tracking)
-	 * @param contents a list of non-blank log entries
-	 * @return a concise, bullet‑point summary
-	 */
-	public String summarize( String username, List<String> contents ) {
-		String logsBlock = contents.stream()
-				.map( line -> "- " + line )
-				.collect( Collectors.joining( "\n" ) );
-		String promptText = String.format( SUMMARY_PROMPT, username, logsBlock );
-		Prompt prompt = new Prompt( promptText );
-		ChatResponse response = chatModel.call( prompt );
+	public SummaryResult summarizeWithLimitCheck( User user, List<String> contents ) {
+		if ( !rateLimiter.allow( user ) ) throw new ResponseStatusException( HttpStatus.TOO_MANY_REQUESTS );
+		String summary = summarize( user.getUsername(), contents );
+		return new SummaryResult( summary, rateLimiter.remaining( user ) );
+	}
 
-		return response.getResult().getOutput().getText();
+	public String summarize( String username, List<String> contents ) {
+		String promptText = String.format( """
+				You are an intelligent learning assistant for a user named %s.
+				Summarize the following personal learning reflections in a friendly and motivational tone.
+				Include a short "Next Step" section with 1 action the user should take next.
+				
+				Reflections:
+				%s
+				""", username, contents.stream().map( s -> "- " + s ).collect( Collectors.joining( "\n" ) ) );
+
+		return chatModel.call( new Prompt( promptText ) ).getResult().getOutput().getText();
+	}
+
+	public record SummaryResult( String summary, int remaining ) {
+
 	}
 }

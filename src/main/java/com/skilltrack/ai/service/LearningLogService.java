@@ -1,7 +1,7 @@
 package com.skilltrack.ai.service;
 
-import com.skilltrack.ai.model.LearningLog;
-import com.skilltrack.ai.model.User;
+import com.skilltrack.ai.entity.LearningLog;
+import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.repository.LearningLogRepository;
 import org.springframework.stereotype.Service;
 
@@ -12,36 +12,27 @@ import java.util.UUID;
 @Service
 public class LearningLogService {
 
-	private final LearningLogRepository learningLogRepository;
+	private final LearningLogRepository repo;
 
-	public LearningLogService( LearningLogRepository learningLogRepository ) {
-		this.learningLogRepository = learningLogRepository;
+	public LearningLogService( LearningLogRepository repo ) {
+		this.repo = repo;
 	}
 
-	public List<LearningLog> getLogs( User user, LocalDateTime dtFrom, LocalDateTime dtTo ) {
-		List<LearningLog> learningLogs = learningLogRepository.findByUser( user );
-		if ( dtFrom != null || dtTo != null ) {
-			learningLogs = learningLogs.stream().filter( log ->
-					( dtFrom == null || log.getDate().isAfter( dtFrom ) ) &&
-							( dtTo == null || log.getDate().isBefore( dtTo ) )
-			).toList();
-		}
-		return learningLogs;
+	public List<LearningLog> getLogs( User user, LocalDateTime from, LocalDateTime to ) {
+		return repo.findByUser( user ).stream()
+				.filter( log -> ( from == null || log.getCreatedAt().isAfter( from ) ) &&
+						( to == null || log.getCreatedAt().isBefore( to ) ) )
+				.toList();
 	}
 
-	public LearningLog addLog( User user, LearningLog log ) {
-		log.setUser( user );
-		return learningLogRepository.save( log );
+	public LearningLog addLog( LearningLog log ) {
+		return repo.save( log );
 	}
 
 	public boolean deleteLog( User user, UUID id ) {
-		return learningLogRepository.findById( id )
-				.filter( log -> log.getUser().getId().equals( user.getId() ) )
-				.map( log -> {
-					learningLogRepository.delete( log );
-					return true;
-				} )
-				.orElse( false );
+		return repo.findById( id ).filter( log -> log.getUser().getId().equals( user.getId() ) ).map( l -> {
+			repo.delete( l );
+			return true;
+		} ).orElse( false );
 	}
-
 }
