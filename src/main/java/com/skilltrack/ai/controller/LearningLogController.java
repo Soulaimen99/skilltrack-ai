@@ -1,10 +1,8 @@
 package com.skilltrack.ai.controller;
 
 import com.skilltrack.ai.dto.LearningLogDto;
-import com.skilltrack.ai.model.LearningLog;
-import com.skilltrack.ai.model.User;
+import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.service.LearningLogService;
-import com.skilltrack.ai.service.SummaryRateLimiter;
 import com.skilltrack.ai.service.SummaryService;
 import com.skilltrack.ai.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -28,87 +26,59 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@SecurityRequirement( name = "bearerAuth" )
 @RestController
 @RequestMapping( "/logs" )
+@SecurityRequirement( name = "bearerAuth" )
 public class LearningLogController {
 
-	private final LearningLogService learningLogService;
+	private final LearningLogService logService;
 
 	private final UserService userService;
 
 	private final SummaryService summaryService;
 
-	private final SummaryRateLimiter summaryRateLimiter;
-
-	public LearningLogController( LearningLogService learningLogService, UserService userService, SummaryService summaryService, SummaryRateLimiter summaryRateLimiter ) {
-		this.learningLogService = learningLogService;
+	public LearningLogController( LearningLogService logService, UserService userService, SummaryService summaryService ) {
+		this.logService = logService;
 		this.userService = userService;
 		this.summaryService = summaryService;
-		this.summaryRateLimiter = summaryRateLimiter;
 	}
 
-	private static String getClaim( JwtAuthenticationToken jwt, String key ) {
-		return jwt.getToken().getClaimAsString( key );
-	}
-
-	private User getUserFromAuth( Authentication auth ) {
+	private User getUser( Authentication auth ) {
 		if ( auth instanceof JwtAuthenticationToken jwt ) {
-			String username = getClaim( jwt, "preferred_username" );
-			String email = getClaim( jwt, "email" );
-			return userService.getOrUpdate( username, email );
+			String username = jwt.getToken().getClaimAsString( "preferred_username" );
+			String email = jwt.getToken().getClaimAsString( "email" );
+			return userService.getOrCreate( username, email );
 		}
-		return userService.getOrUpdate( auth.getName(), null );
+		return userService.getOrCreate( auth.getName(), null );
 	}
 
 	@GetMapping
-	public ResponseEntity<List<LearningLogDto>> getLogs(
-			@RequestParam( required = false ) String from,
-			@RequestParam( required = false ) String to,
-			Authentication auth ) {
-		User user = getUserFromAuth( auth );
-		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
-		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
-		List<LearningLogDto> logs = learningLogService.getLogs( user, dtFrom, dtTo ).stream()
-				.map( LearningLogDto::from )
-				.toList();
-
-		return ResponseEntity.ok( logs );
+	public ResponseEntity<List<LearningLogDto>> getLogs( @RequestParam( required = false ) String from,
+	                                                     @RequestParam( required = false ) String to,
+	                                                     Authentication auth ) {
+		User user = getUser( auth );
+		LocalDateTime fromDate = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
+		LocalDateTime toDate = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
+		return ResponseEntity.ok( logService.getLogs( user, fromDate, toDate ).stream().map( LearningLogDto::from ).toList() );
 	}
 
 	@PostMapping
-	public ResponseEntity<LearningLogDto> addLog( @RequestBody LearningLogDto logDto, Authentication auth ) {
-		User user = getUserFromAuth( auth );
-		LearningLog log = learningLogService.addLog( user, logDto.toEntity() );
-
-		return ResponseEntity.status( HttpStatus.CREATED ).body( LearningLogDto.from( log ) );
+	public ResponseEntity<LearningLogDto> addLog( @RequestBody LearningLogDto dto, Authentication auth ) {
+		return ResponseEntity.status( HttpStatus.CREATED )
+				.body( LearningLogDto.from( logService.addLog( dto.toEntity( getUser( auth ) ) ) ) );
 	}
 
 	@DeleteMapping( "/{id}" )
 	public ResponseEntity<Void> deleteLog( @PathVariable UUID id, Authentication auth ) {
-		User user = getUserFromAuth( auth );
-		boolean deleted = learningLogService.deleteLog( user, id );
-
-		return deleted ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
+		return logService.deleteLog( getUser( auth ), id ) ? ResponseEntity.noContent().build() : ResponseEntity.notFound().build();
 	}
 
 	@PostMapping( "/summarize" )
-	public ResponseEntity<Map<String, String>> summarizeLogs( @RequestBody List<LearningLogDto> logsDto, Authentication auth ) {
-		User user = getUserFromAuth( auth );
-		String username = user.getUsername();
-
-		if ( !summaryRateLimiter.allow( username ) ) {
-			return ResponseEntity.status( HttpStatus.TOO_MANY_REQUESTS )
-					.body( Map.of( "error", "You have reached your daily summary limit. Try again tomorrow." ) );
-		}
-
-		List<String> contents = logsDto.stream()
-				.map( LearningLogDto::content )
-				.filter( line -> line != null && !line.isBlank() )
-				.toList();
-		String summary = summaryService.summarize( user.getUsername(), contents );
-
-		return ResponseEntity.ok().header( "X-RateLimit-Remaining", String.valueOf( summaryRateLimiter.remaining( username ) ) )
-				.body( Map.of( "summary", summary ) );
+	public ResponseEntity<Map<String, String>> summarize( @RequestBody List<LearningLogDto> logs, Authentication auth ) {
+		User user = getUser( auth );
+		List<String> content = logs.stream().map( LearningLogDto::content ).filter( s -> s != null && !s.isBlank() ).toList();
+		SummaryService.SummaryResult result = summaryService.summarizeWithLimitCheck( user, content );
+		return ResponseEntity.ok().header( "X-RateLimit-Remaining", String.valueOf( result.remaining() ) )
+				.body( Map.of( "summary", result.summary() ) );
 	}
 }

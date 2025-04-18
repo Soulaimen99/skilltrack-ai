@@ -1,7 +1,7 @@
 package com.skilltrack.ai.controller;
 
 import com.skilltrack.ai.dto.UserDto;
-import com.skilltrack.ai.model.User;
+import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -25,7 +25,7 @@ public class AuthController {
 		String username = jwt.getClaimAsString( "preferred_username" );
 		String email = jwt.getClaimAsString( "email" );
 
-		User user = userService.getOrUpdate( username, email );
+		User user = userService.getOrCreate( username, email );
 		return ResponseEntity.ok( UserDto.from( user ) );
 	}
 }
