@@ -15,6 +15,13 @@ public class UserService {
 	private final UserRepository userRepository;
 
 	@Transactional
+	public User get( String username, String email ) {
+		return userRepository.findByUsername( username )
+				.map( u -> updateEmailIfChanged( u, email ) )
+				.orElseThrow( () -> new IllegalStateException( "User not found" ) );
+	}
+
+	@Transactional
 	public User getOrCreate( String username, String email ) {
 		return userRepository.findByUsername( username )
 				.map( u -> updateEmailIfChanged( u, email ) )

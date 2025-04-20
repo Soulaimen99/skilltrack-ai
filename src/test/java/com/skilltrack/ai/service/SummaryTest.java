@@ -2,6 +2,7 @@ package com.skilltrack.ai.service;
 
 import com.skilltrack.ai.entity.SummaryUsage;
 import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.repository.SummaryRepository;
 import com.skilltrack.ai.repository.SummaryUsageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,9 @@ class SummaryTest {
 	SummaryUsageRepository usageRepository;
 
 	@Mock
+	SummaryRepository summaryRepository;
+
+	@Mock
 	SummaryUsageInsertService insertService;
 
 	@Mock
@@ -53,7 +57,7 @@ class SummaryTest {
 
 	@BeforeEach
 	void setUp() {
-		summaryService = new SummaryService( chatModel, rateLimiter );
+		summaryService = new SummaryService( chatModel, rateLimiter, summaryRepository );
 		user = new User( UUID.randomUUID(), "tester", "test@example.com", null );
 		ReflectionTestUtils.setField( rateLimiter, "dailyLimit", 10 );
 	}

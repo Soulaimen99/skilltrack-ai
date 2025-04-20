@@ -1,17 +1,12 @@
 package com.skilltrack.ai.controller;
 
 import com.skilltrack.ai.dto.LearningLogDto;
-import com.skilltrack.ai.dto.PagedLogsResponse;
 import com.skilltrack.ai.entity.LearningLog;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.service.LearningLogService;
 import com.skilltrack.ai.service.SummaryService;
 import com.skilltrack.ai.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,9 +20,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -49,44 +41,40 @@ public class LearningLogController {
 		this.summaryService = summaryService;
 	}
 
+
 	private User getUser( Authentication auth ) {
 		if ( auth instanceof JwtAuthenticationToken jwt ) {
 			String username = jwt.getToken().getClaimAsString( "preferred_username" );
 			String email = jwt.getToken().getClaimAsString( "email" );
-			return userService.getOrCreate( username, email );
+			return userService.get( username, email );
 		}
-		return userService.getOrCreate( auth.getName(), null );
+		return null;
 	}
 
 	@GetMapping
-	public ResponseEntity<PagedLogsResponse> getLogs( @RequestParam( required = false ) String from,
-	                                                  @RequestParam( required = false ) String to,
-	                                                  @RequestParam( defaultValue = "0" ) int page,
-	                                                  @RequestParam( defaultValue = "10" ) int size,
-	                                                  Authentication auth ) {
+	public ResponseEntity<LearningLogDto.PagedLogsResponse> getLogs( @RequestParam( required = false ) String from,
+	                                                                 @RequestParam( required = false ) String to,
+	                                                                 @RequestParam( defaultValue = "0" ) int page,
+	                                                                 @RequestParam( defaultValue = "10" ) int size,
+	                                                                 Authentication auth ) {
 		User user = getUser( auth );
-		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
-		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
-		Pageable pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
-		Page<LearningLog> logPage = learningLogService.getLogs( user, dtFrom, dtTo, pageable );
-
-		List<LearningLogDto> content = logPage.getContent().stream()
-				.map( LearningLogDto::from )
-				.toList();
-
-		return ResponseEntity.ok( new PagedLogsResponse(
-				content,
-				logPage.getNumber(),
-				logPage.getSize(),
-				logPage.getTotalPages(),
-				logPage.getTotalElements()
-		) );
+		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, user ) );
 	}
 
 	@PostMapping
-	public ResponseEntity<LearningLogDto> addLog( @RequestBody LearningLogDto dto, Authentication auth ) {
+	public ResponseEntity<LearningLogDto> createLog( @RequestBody LearningLogDto logDto, Authentication auth ) {
+		User user = getUser( auth );
+		LearningLog created = learningLogService.addLog( logDto.toEntity( user ) );
 		return ResponseEntity.status( HttpStatus.CREATED )
-				.body( LearningLogDto.from( learningLogService.addLog( dto.toEntity( getUser( auth ) ) ) ) );
+				.body( LearningLogDto.from( learningLogService.addLog( created ) ) );
+	}
+
+	@PostMapping( "/{id}" )
+	public ResponseEntity<LearningLogDto> updateLog( @PathVariable UUID id, @RequestBody LearningLogDto logDto, Authentication auth ) {
+		User user = getUser( auth );
+		LearningLog updated = learningLogService.editLog( id, logDto.toEntity( user ) );
+		return ResponseEntity.status( HttpStatus.CREATED )
+				.body( LearningLogDto.from( learningLogService.addLog( updated ) ) );
 	}
 
 	@DeleteMapping( "/{id}" )

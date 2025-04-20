@@ -13,7 +13,6 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-// User.java
 @Entity
 @Table( name = "app_user" )
 @Getter

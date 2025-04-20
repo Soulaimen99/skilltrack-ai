@@ -12,14 +12,14 @@ import java.util.UUID;
 @Service
 public class SummaryUsageInsertService {
 
-	private final SummaryUsageRepository repo;
+	private final SummaryUsageRepository summaryUsageRepository;
 
-	public SummaryUsageInsertService( SummaryUsageRepository repo ) {
-		this.repo = repo;
+	public SummaryUsageInsertService( SummaryUsageRepository summaryUsageRepository ) {
+		this.summaryUsageRepository = summaryUsageRepository;
 	}
 
 	@Transactional( propagation = Propagation.REQUIRES_NEW )
 	public void insertNewUsage( User user ) {
-		repo.insertNewUsage( UUID.randomUUID(), user.getId(), user.getUsername(), LocalDate.now() );
+		summaryUsageRepository.insertNewUsage( UUID.randomUUID(), user.getId(), user.getUsername(), LocalDate.now() );
 	}
 }

@@ -15,7 +15,6 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-// LearningLog.java
 @Entity
 @Table( name = "learning_log" )
 @Getter

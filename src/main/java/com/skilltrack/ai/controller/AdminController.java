@@ -1,0 +1,67 @@
+package com.skilltrack.ai.controller;
+
+import com.skilltrack.ai.dto.LearningLogDto;
+import com.skilltrack.ai.dto.SummaryDto;
+import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.repository.UserRepository;
+import com.skilltrack.ai.service.LearningLogService;
+import com.skilltrack.ai.service.SummaryService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.UUID;
+
+@RestController
+@RequestMapping( "/admin" )
+@SecurityRequirement( name = "bearerAuth" )
+@PreAuthorize( "hasRole( 'admin' )" )
+public class AdminController {
+
+	private final LearningLogService learningLogService;
+
+	private final SummaryService summaryService;
+
+	private final UserRepository userRepository;
+
+	public AdminController( LearningLogService learningLogService, SummaryService summaryService, UserRepository userRepository ) {
+		this.learningLogService = learningLogService;
+		this.summaryService = summaryService;
+		this.userRepository = userRepository;
+	}
+
+	@GetMapping( "/users/{user_id}/logs" )
+	public ResponseEntity<LearningLogDto.PagedLogsResponse> getUserLogs(
+			@PathVariable UUID user_id,
+			@RequestParam( required = false ) String from,
+			@RequestParam( required = false ) String to,
+			@RequestParam( defaultValue = "0" ) int page,
+			@RequestParam( defaultValue = "10" ) int size,
+			Authentication auth ) {
+		User user = userRepository.findById( user_id ).orElseThrow(
+				() -> new EntityNotFoundException( "User not found" )
+		);
+		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, user ) );
+	}
+
+	@GetMapping( "/users/{user_id}/summaries" )
+	public ResponseEntity<SummaryDto.PagedSummariesResponse> summarize(
+			@PathVariable UUID user_id,
+			@RequestParam( required = false ) String from,
+			@RequestParam( required = false ) String to,
+			@RequestParam( defaultValue = "0" ) int page,
+			@RequestParam( defaultValue = "10" ) int size,
+			Authentication auth ) {
+		User user = userRepository.findById( user_id ).orElseThrow(
+				() -> new EntityNotFoundException( "User not found" )
+		);
+		return ResponseEntity.ok( summaryService.getPagedSummariesResponse( from, to, page, size, user ) );
+	}
+}
