@@ -10,16 +10,16 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
-public class SummaryUsageInsertService {
+public class SummaryUsageService {
 
-	private final SummaryUsageRepository summaryUsageRepository;
+	private final SummaryUsageRepository repo;
 
-	public SummaryUsageInsertService( SummaryUsageRepository summaryUsageRepository ) {
-		this.summaryUsageRepository = summaryUsageRepository;
+	public SummaryUsageService( SummaryUsageRepository repo ) {
+		this.repo = repo;
 	}
 
 	@Transactional( propagation = Propagation.REQUIRES_NEW )
 	public void insertNewUsage( User user ) {
-		summaryUsageRepository.insertNewUsage( UUID.randomUUID(), user.getId(), user.getUsername(), LocalDate.now() );
+		repo.insertNewUsage( UUID.randomUUID(), user.getId(), user.getUsername(), LocalDate.now() );
 	}
 }

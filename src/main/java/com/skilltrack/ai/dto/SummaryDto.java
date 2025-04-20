@@ -26,5 +26,4 @@ public record SummaryDto( UUID id, String username, String content, LocalDateTim
 	) {
 
 	}
-
 }

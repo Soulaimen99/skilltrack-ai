@@ -30,7 +30,6 @@ public class LearningLogService {
 		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
 		Pageable pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
 		Page<LearningLog> logPage = getLogs( user, dtFrom, dtTo, pageable );
-
 		List<LearningLogDto> content = logPage.getContent().stream()
 				.map( LearningLogDto::from )
 				.toList();
@@ -42,6 +41,7 @@ public class LearningLogService {
 		if ( from != null && to != null ) {
 			return learningLogRepository.findByUserAndCreatedAtBetween( user, from, to, pageable );
 		}
+
 		return learningLogRepository.findByUser( user, pageable );
 	}
 
@@ -55,6 +55,7 @@ public class LearningLogService {
 		);
 		existingLog.setContent( log.getContent() );
 		existingLog.setTags( log.getTags() );
+
 		return learningLogRepository.save( existingLog );
 	}
 

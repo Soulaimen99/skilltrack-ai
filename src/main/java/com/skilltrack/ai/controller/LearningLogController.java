@@ -9,12 +9,14 @@ import com.skilltrack.ai.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,6 +29,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping( "/logs" )
 @SecurityRequirement( name = "bearerAuth" )
+@PreAuthorize( "hasRole( 'user' )" )
 public class LearningLogController {
 
 	private final LearningLogService learningLogService;
@@ -48,7 +51,8 @@ public class LearningLogController {
 			String email = jwt.getToken().getClaimAsString( "email" );
 			return userService.get( username, email );
 		}
-		return null;
+
+		throw new IllegalArgumentException( "Invalid authentication token" );
 	}
 
 	@GetMapping
@@ -58,6 +62,7 @@ public class LearningLogController {
 	                                                                 @RequestParam( defaultValue = "10" ) int size,
 	                                                                 Authentication auth ) {
 		User user = getUser( auth );
+
 		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, user ) );
 	}
 
@@ -65,16 +70,17 @@ public class LearningLogController {
 	public ResponseEntity<LearningLogDto> createLog( @RequestBody LearningLogDto logDto, Authentication auth ) {
 		User user = getUser( auth );
 		LearningLog created = learningLogService.addLog( logDto.toEntity( user ) );
+
 		return ResponseEntity.status( HttpStatus.CREATED )
 				.body( LearningLogDto.from( learningLogService.addLog( created ) ) );
 	}
 
-	@PostMapping( "/{id}" )
+	@PutMapping( "/{id}" )
 	public ResponseEntity<LearningLogDto> updateLog( @PathVariable UUID id, @RequestBody LearningLogDto logDto, Authentication auth ) {
 		User user = getUser( auth );
 		LearningLog updated = learningLogService.editLog( id, logDto.toEntity( user ) );
-		return ResponseEntity.status( HttpStatus.CREATED )
-				.body( LearningLogDto.from( learningLogService.addLog( updated ) ) );
+
+		return ResponseEntity.ok( LearningLogDto.from( updated ) );
 	}
 
 	@DeleteMapping( "/{id}" )
@@ -87,6 +93,7 @@ public class LearningLogController {
 		User user = getUser( auth );
 		List<String> content = logs.stream().map( LearningLogDto::content ).filter( s -> s != null && !s.isBlank() ).toList();
 		SummaryService.SummaryResult result = summaryService.summarizeWithLimitCheck( user, content );
+
 		return ResponseEntity.ok().header( "X-RateLimit-Remaining", String.valueOf( result.remaining() ) )
 				.body( Map.of( "summary", result.summary() ) );
 	}

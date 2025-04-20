@@ -14,7 +14,7 @@ public record LearningLogDto( UUID id, String username, String content, String t
 	}
 
 	public LearningLog toEntity( User user ) {
-		return new LearningLog( null, user, user.getUsername(), this.content, this.tags, LocalDateTime.now() );
+		return new LearningLog( null, user, user.getUsername(), this.content, this.tags, null );
 	}
 
 	public record PagedLogsResponse(

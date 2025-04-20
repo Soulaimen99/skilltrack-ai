@@ -3,11 +3,10 @@ package com.skilltrack.ai.controller;
 import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.User;
-import com.skilltrack.ai.repository.UserRepository;
 import com.skilltrack.ai.service.LearningLogService;
 import com.skilltrack.ai.service.SummaryService;
+import com.skilltrack.ai.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import jakarta.persistence.EntityNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -29,12 +28,12 @@ public class AdminController {
 
 	private final SummaryService summaryService;
 
-	private final UserRepository userRepository;
+	private final UserService userService;
 
-	public AdminController( LearningLogService learningLogService, SummaryService summaryService, UserRepository userRepository ) {
+	public AdminController( LearningLogService learningLogService, SummaryService summaryService, UserService userService ) {
 		this.learningLogService = learningLogService;
 		this.summaryService = summaryService;
-		this.userRepository = userRepository;
+		this.userService = userService;
 	}
 
 	@GetMapping( "/users/{user_id}/logs" )
@@ -45,9 +44,8 @@ public class AdminController {
 			@RequestParam( defaultValue = "0" ) int page,
 			@RequestParam( defaultValue = "10" ) int size,
 			Authentication auth ) {
-		User user = userRepository.findById( user_id ).orElseThrow(
-				() -> new EntityNotFoundException( "User not found" )
-		);
+		User user = userService.getById( user_id );
+
 		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, user ) );
 	}
 
@@ -59,9 +57,8 @@ public class AdminController {
 			@RequestParam( defaultValue = "0" ) int page,
 			@RequestParam( defaultValue = "10" ) int size,
 			Authentication auth ) {
-		User user = userRepository.findById( user_id ).orElseThrow(
-				() -> new EntityNotFoundException( "User not found" )
-		);
+		User user = userService.getById( user_id );
+		
 		return ResponseEntity.ok( summaryService.getPagedSummariesResponse( from, to, page, size, user ) );
 	}
 }
