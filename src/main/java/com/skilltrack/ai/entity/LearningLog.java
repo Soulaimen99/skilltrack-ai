@@ -6,6 +6,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -15,7 +16,6 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-// LearningLog.java
 @Entity
 @Table( name = "learning_log" )
 @Getter
@@ -39,7 +39,13 @@ public class LearningLog {
 
 	private String tags;
 
-	@Column( name = "created_at" )
-	private LocalDateTime createdAt = LocalDateTime.now();
-}
+	@Column( name = "created_at", nullable = false )
+	private LocalDateTime createdAt;
 
+	@PrePersist
+	public void prePersist() {
+		if ( createdAt == null ) {
+			createdAt = LocalDateTime.now();
+		}
+	}
+}

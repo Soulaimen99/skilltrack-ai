@@ -10,11 +10,11 @@ import java.time.LocalDate;
 import java.util.UUID;
 
 @Service
-public class SummaryUsageInsertService {
+public class SummaryUsageService {
 
 	private final SummaryUsageRepository repo;
 
-	public SummaryUsageInsertService( SummaryUsageRepository repo ) {
+	public SummaryUsageService( SummaryUsageRepository repo ) {
 		this.repo = repo;
 	}
 

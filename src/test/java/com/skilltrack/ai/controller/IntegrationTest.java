@@ -1,0 +1,116 @@
+package com.skilltrack.ai.controller;
+
+import com.skilltrack.ai.dto.LearningLogDto;
+import com.skilltrack.ai.dto.SummaryDto;
+import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.service.LearningLogService;
+import com.skilltrack.ai.service.SummaryService;
+import com.skilltrack.ai.service.UserService;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+
+import java.util.Collections;
+import java.util.UUID;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+@SpringBootTest
+@AutoConfigureMockMvc
+@ActiveProfiles( "test" )
+@Import( IntegrationTest.MockedBeans.class )
+class IntegrationTest {
+
+	private final User testUser = new User( UUID.randomUUID(), "testuser", "test@example.com", null );
+
+	@Autowired
+	MockMvc mockMvc;
+
+	@Autowired
+	UserService userService;
+
+	@Autowired
+	LearningLogService learningLogService;
+
+	@Autowired
+	SummaryService summaryService;
+
+	@BeforeEach
+	void setup() {
+		when( userService.get( any(), any() ) ).thenReturn( testUser );
+		when( userService.getById( testUser.getId() ) ).thenReturn( testUser );
+	}
+
+	@Test
+	void testGetLogs() throws Exception {
+		when( learningLogService.getPagedLogsResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
+				.thenReturn( new LearningLogDto.PagedLogsResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
+
+		mockMvc.perform( get( "/logs" )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "testuser" )
+										.claim( "email", "test@example.com" ) )
+								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) ) )
+				.andExpect( status().isOk() );
+	}
+
+	@Test
+	void testAdminAccessWithRole() throws Exception {
+		when( learningLogService.getPagedLogsResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
+				.thenReturn( new LearningLogDto.PagedLogsResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
+
+		mockMvc.perform( get( "/admin/users/" + testUser.getId() + "/logs" )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "admin" )
+										.claim( "email", "admin@example.com" ) )
+								.authorities( new SimpleGrantedAuthority( "ROLE_admin" ) ) ) )
+				.andExpect( status().isOk() );
+	}
+
+	@Test
+	void testAdminSummariesAccess_withAdminRole_shouldReturnOk() throws Exception {
+		when( summaryService.getPagedSummariesResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
+				.thenReturn( new SummaryDto.PagedSummariesResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
+
+		mockMvc.perform( get( "/admin/users/" + testUser.getId() + "/summaries" )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "admin" )
+										.claim( "email", "admin@example.com" ) )
+								.authorities( new SimpleGrantedAuthority( "ROLE_admin" ) )
+						) )
+				.andExpect( status().isOk() );
+	}
+
+	@TestConfiguration
+	static class MockedBeans {
+
+		@Bean
+		UserService userService() {
+			return Mockito.mock( UserService.class );
+		}
+
+		@Bean
+		LearningLogService learningLogService() {
+			return Mockito.mock( LearningLogService.class );
+		}
+
+		@Bean
+		SummaryService summaryService() {
+			return Mockito.mock( SummaryService.class );
+		}
+	}
+}

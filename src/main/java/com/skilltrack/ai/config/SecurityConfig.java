@@ -6,11 +6,17 @@ import org.springframework.lang.NonNull;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -33,24 +39,33 @@ public class SecurityConfig {
 				.csrf( AbstractHttpConfigurer::disable )
 				.authorizeHttpRequests( auth -> auth
 						.requestMatchers( SWAGGER_WHITELIST ).permitAll()
-						.requestMatchers( "/logs/**", "/api/auth/**" ).authenticated()
+						.requestMatchers( "/logs/**", "/api/auth/**", "/admin/**" ).authenticated()
 						.anyRequest().authenticated()
 				)
 				.oauth2ResourceServer( oauth2 -> oauth2
 						.jwt( jwt -> jwt.jwtAuthenticationConverter( jwtAuthenticationConverter() ) )
 				);
+
 		return http.build();
 	}
 
 	@Bean
 	public JwtAuthenticationConverter jwtAuthenticationConverter() {
-		JwtGrantedAuthoritiesConverter converter = new JwtGrantedAuthoritiesConverter();
-		converter.setAuthorityPrefix( "ROLE_" );
-		converter.setAuthoritiesClaimName( "realm_access.roles" );
+		JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
 
-		JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-		jwtConverter.setJwtGrantedAuthoritiesConverter( converter );
-		return jwtConverter;
+		converter.setJwtGrantedAuthoritiesConverter( ( Jwt jwt ) -> {
+			Map<String, Object> realmAccess = jwt.getClaim( "realm_access" );
+			if ( realmAccess == null || !( realmAccess.get( "roles" ) instanceof List<?> roles ) ) {
+				return Collections.emptyList();
+			}
+
+			return roles.stream()
+					.filter( role -> role instanceof String )
+					.map( role -> new SimpleGrantedAuthority( "ROLE_" + role ) )
+					.collect( Collectors.toList() );
+		} );
+
+		return converter;
 	}
 
 	@Bean

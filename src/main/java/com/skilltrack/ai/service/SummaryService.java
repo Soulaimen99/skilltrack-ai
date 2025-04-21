@@ -1,12 +1,26 @@
 package com.skilltrack.ai.service;
 
+import com.skilltrack.ai.dto.LearningLogDto;
+import com.skilltrack.ai.dto.SummaryDto;
+import com.skilltrack.ai.entity.Summary;
 import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.repository.SummaryRepository;
+import com.skilltrack.ai.repository.SummaryUsageRepository;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,17 +30,51 @@ public class SummaryService {
 
 	private final OpenAiChatModel chatModel;
 
-	private final SummaryRateLimiter rateLimiter;
+	private final SummaryRepository summaryRepository;
 
-	public SummaryService( OpenAiChatModel chatModel, SummaryRateLimiter rateLimiter ) {
+	private final SummaryUsageRepository summaryUsageRepository;
+
+	private final SummaryUsageService summaryUsageService;
+
+	@Value( "${summary.limit.daily:10}" )
+	private int dailyLimit;
+
+	public SummaryService( OpenAiChatModel chatModel, SummaryRepository summaryRepository, SummaryUsageRepository summaryUsageRepository, SummaryUsageService summaryUsageService ) {
 		this.chatModel = chatModel;
-		this.rateLimiter = rateLimiter;
+		this.summaryRepository = summaryRepository;
+		this.summaryUsageRepository = summaryUsageRepository;
+		this.summaryUsageService = summaryUsageService;
 	}
 
-	public SummaryResult summarizeWithLimitCheck( User user, List<String> contents ) {
-		if ( !rateLimiter.allow( user ) ) throw new ResponseStatusException( HttpStatus.TOO_MANY_REQUESTS );
-		String summary = summarize( user.getUsername(), contents );
-		return new SummaryResult( summary, rateLimiter.remaining( user ) );
+	public SummaryDto.PagedSummariesResponse getPagedSummariesResponse( String from, String to, int page, int size, User user ) {
+		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
+		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
+		Pageable pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
+		Page<Summary> summaryPage = getSummaries( user, dtFrom, dtTo, pageable );
+		List<SummaryDto> content = summaryPage.getContent().stream()
+				.map( SummaryDto::from )
+				.toList();
+
+		return new SummaryDto.PagedSummariesResponse( content, summaryPage.getNumber(), summaryPage.getSize(), summaryPage.getTotalPages(), summaryPage.getTotalElements() );
+	}
+
+	public Page<Summary> getSummaries( User user, LocalDateTime from, LocalDateTime to, Pageable pageable ) {
+		if ( from != null && to != null ) {
+			return summaryRepository.findByUserAndCreatedAtBetween( user, from, to, pageable );
+		}
+
+		return summaryRepository.findByUser( user, pageable );
+	}
+
+	public SummaryDto summarizeWithLimitCheck( User user, List<LearningLogDto> logs ) {
+		if ( !allow( user ) ) {
+			throw new ResponseStatusException( HttpStatus.TOO_MANY_REQUESTS );
+		}
+		List<String> contents = LearningLogDto.toContentList( logs );
+		String summaryText = summarize( user.getUsername(), contents );
+		Summary saved = summaryRepository.save( new Summary( null, user, user.getUsername(), summaryText, LocalDateTime.now() ) );
+
+		return SummaryDto.from( saved );
 	}
 
 	public String summarize( String username, List<String> contents ) {
@@ -42,7 +90,21 @@ public class SummaryService {
 		return chatModel.call( new Prompt( promptText ) ).getResult().getOutput().getText();
 	}
 
-	public record SummaryResult( String summary, int remaining ) {
+	public boolean allow( User user ) {
+		LocalDate today = LocalDate.now();
+		if ( summaryUsageRepository.tryIncrement( user, today, dailyLimit ) > 0 ) return true;
+		try {
+			summaryUsageService.insertNewUsage( user );
+			return true;
+		}
+		catch ( DataIntegrityViolationException e ) {
+			return summaryUsageRepository.tryIncrement( user, today, dailyLimit ) > 0;
+		}
+	}
 
+	public int remaining( User user ) {
+		return summaryUsageRepository.findByUserAndUsageDate( user, LocalDate.now() )
+				.map( u -> Math.max( 0, dailyLimit - u.getCount() ) )
+				.orElse( dailyLimit );
 	}
 }

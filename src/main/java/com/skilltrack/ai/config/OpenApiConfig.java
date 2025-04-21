@@ -14,5 +14,5 @@ import org.springframework.context.annotation.Configuration;
 		in = SecuritySchemeIn.HEADER
 )
 public class OpenApiConfig {
-	// This enables the Authorize button in Swagger
+
 }

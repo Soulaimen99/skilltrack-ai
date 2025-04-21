@@ -9,5 +9,4 @@ public class SkilltrackApplication {
 	public static void main( String[] args ) {
 		SpringApplication.run( SkilltrackApplication.class, args );
 	}
-
 }

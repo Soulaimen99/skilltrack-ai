@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -13,6 +14,19 @@ import java.util.UUID;
 public class UserService {
 
 	private final UserRepository userRepository;
+
+	@Transactional
+	public User getById( UUID id ) {
+		return userRepository.findById( id )
+				.orElseThrow( () -> new IllegalStateException( "User not found" ) );
+	}
+
+	@Transactional
+	public User get( String username, String email ) {
+		return userRepository.findByUsername( username )
+				.map( u -> updateEmailIfChanged( u, email ) )
+				.orElseThrow( () -> new IllegalStateException( "User not found" ) );
+	}
 
 	@Transactional
 	public User getOrCreate( String username, String email ) {
@@ -31,5 +45,9 @@ public class UserService {
 			u.setEmail( email );
 		}
 		return u;
+	}
+
+	public List<User> getAllUsers() {
+		return userRepository.findAll();
 	}
 }

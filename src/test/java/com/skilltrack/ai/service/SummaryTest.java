@@ -1,12 +1,14 @@
 package com.skilltrack.ai.service;
 
+import com.skilltrack.ai.dto.LearningLogDto;
+import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.SummaryUsage;
 import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.repository.SummaryRepository;
 import com.skilltrack.ai.repository.SummaryUsageRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.ai.chat.messages.AssistantMessage;
@@ -24,28 +26,30 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith( MockitoExtension.class )
 class SummaryTest {
 
 	@Mock
-	SummaryUsageRepository usageRepository;
-
-	@Mock
-	SummaryUsageInsertService insertService;
-
-	@Mock
 	OpenAiChatModel chatModel;
 
-	@InjectMocks
-	SummaryRateLimiter rateLimiter;
+	@Mock
+	SummaryUsageRepository summaryUsageRepository;
+
+	@Mock
+	SummaryRepository summaryRepository;
+
+	@Mock
+	SummaryUsageService summaryUsageService;
 
 	SummaryService summaryService;
 
@@ -53,50 +57,71 @@ class SummaryTest {
 
 	@BeforeEach
 	void setUp() {
-		summaryService = new SummaryService( chatModel, rateLimiter );
+		summaryService = new SummaryService( chatModel, summaryRepository, summaryUsageRepository, summaryUsageService );
 		user = new User( UUID.randomUUID(), "tester", "test@example.com", null );
-		ReflectionTestUtils.setField( rateLimiter, "dailyLimit", 10 );
+		ReflectionTestUtils.setField( summaryService, "dailyLimit", 10 );
 	}
 
 	@Test
-	void testRateLimiter_allowsIfTryIncrementSucceeds() {
-		when( usageRepository.tryIncrement( eq( user ), any(), anyInt() ) ).thenReturn( 1 );
-		assertTrue( rateLimiter.allow( user ) );
+	void testAllow_whenTryIncrementSucceeds() {
+		when( summaryUsageRepository.tryIncrement( eq( user ), any(), eq( 10 ) ) ).thenReturn( 1 );
+		assertTrue( summaryService.allow( user ) );
 	}
 
 	@Test
-	void testRateLimiter_allowsIfInsertSucceedsAfterInitialFail() {
-		when( usageRepository.tryIncrement( eq( user ), any(), anyInt() ) ).thenReturn( 0 ).thenReturn( 1 );
-		doNothing().when( insertService ).insertNewUsage( eq( user ) );
-		assertTrue( rateLimiter.allow( user ) );
+	void testAllow_whenInsertThenRetrySucceeds() {
+		when( summaryUsageRepository.tryIncrement( eq( user ), any(), eq( 10 ) ) ).thenReturn( 0 ).thenReturn( 1 );
+		doNothing().when( summaryUsageService ).insertNewUsage( eq( user ) );
+		assertTrue( summaryService.allow( user ) );
+		verify( summaryUsageService, times( 1 ) ).insertNewUsage( eq( user ) );
 	}
 
 	@Test
-	void testRateLimiter_retriesIfInsertFailsWithConstraint() {
-		when( usageRepository.tryIncrement( eq( user ), any(), anyInt() ) ).thenReturn( 0 ).thenReturn( 1 );
-		doThrow( DataIntegrityViolationException.class ).when( insertService ).insertNewUsage( eq( user ) );
-		assertTrue( rateLimiter.allow( user ) );
+	void testAllow_whenInsertFails_thenRetrySucceeds() {
+		when( summaryUsageRepository.tryIncrement( eq( user ), any(), eq( 10 ) ) )
+				.thenReturn( 0 )
+				.thenReturn( 1 );
+
+		doThrow( DataIntegrityViolationException.class ).when( summaryUsageService ).insertNewUsage( user );
+
+		assertTrue( summaryService.allow( user ) );
+		verify( summaryUsageService, times( 1 ) ).insertNewUsage( user );
 	}
 
 	@Test
-	void testRemainingUsage() {
-		LocalDate today = LocalDate.now();
-		when( usageRepository.findByUserAndUsageDate( user, today ) ).thenReturn( Optional.of( new SummaryUsage( null, user, user.getUsername(), today, 3 ) ) );
-		assertEquals( 7, rateLimiter.remaining( user ) );
+	void testRemaining_withExistingUsage() {
+		when( summaryUsageRepository.findByUserAndUsageDate( eq( user ), any() ) )
+				.thenReturn( Optional.of( new SummaryUsage( null, user, user.getUsername(), LocalDate.now(), 3 ) ) );
+
+		assertEquals( 7, summaryService.remaining( user ) );
+	}
+
+	@Test
+	void testRemaining_withNoUsageYet() {
+		when( summaryUsageRepository.findByUserAndUsageDate( eq( user ), any() ) )
+				.thenReturn( Optional.empty() );
+
+		assertEquals( 10, summaryService.remaining( user ) );
 	}
 
 	@Test
 	void testSummarizeWithLimitCheck_success() {
-		when( usageRepository.tryIncrement( eq( user ), any(), anyInt() ) ).thenReturn( 1 );
+		when( summaryUsageRepository.tryIncrement( eq( user ), any(), eq( 10 ) ) ).thenReturn( 1 );
 
 		AssistantMessage message = new AssistantMessage( "mocked summary" );
 		Generation generation = new Generation( message );
 		ChatResponse response = new ChatResponse( List.of( generation ), new ChatResponseMetadata() );
-
 		when( chatModel.call( any( Prompt.class ) ) ).thenReturn( response );
 
-		SummaryService.SummaryResult result = summaryService.summarizeWithLimitCheck( user, List.of( "Log 1", "Log 2" ) );
-		assertTrue( result.summary().contains( "mocked" ) );
-		assertTrue( result.remaining() >= 0 );
+		List<LearningLogDto> logs = List.of(
+				new LearningLogDto( null, user.getUsername(), "Learned Java Streams", "java", null ),
+				new LearningLogDto( null, user.getUsername(), "Practiced Spring Boot", "spring", null )
+		);
+		when( summaryRepository.save( any() ) ).thenAnswer( invocation -> invocation.getArgument( 0 ) );
+		SummaryDto summaryDto = summaryService.summarizeWithLimitCheck( user, logs );
+
+		assertEquals( "mocked summary", summaryDto.content() );
+		assertEquals( user.getUsername(), summaryDto.username() );
+		assertNotNull( summaryDto.createdAt() );
 	}
 }

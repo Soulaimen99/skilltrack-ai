@@ -1,15 +1,15 @@
 # SkillTrack-AI (Backend)
 
-Spring Boot backend for **SkillTrack-AI** — a learning log tracker that generates smart summaries using OpenAI and is
-secured with Keycloak. Powered by PostgreSQL.
+Spring Boot backend for **SkillTrack-AI** — a secure learning log tracker that generates AI-based summaries using OpenAI
+and authenticates via Keycloak. Built with PostgreSQL and ready for local development, testing, and deployment.
 
 ---
 
 ## 🛠 Tech Stack
 
 - Java 21 + Spring Boot 3.4
-- Spring Security (with Keycloak)
-- PostgreSQL (via Docker)
+- Spring Security + OAuth2 Resource Server (Keycloak)
+- PostgreSQL (via Docker Compose)
 - OpenAI Integration via `openai-gpt3-java`
 - H2 (for test profile)
 - Maven
@@ -56,9 +56,9 @@ Runs with H2 in-memory DB using the `test` profile.
 ## 🔐 Auth Setup (Keycloak)
 
 - Realm: `skilltrack`
-- Client: `skilltrack-frontend`
-- Role: `USER`
-- Uses `preferred_username` claim from JWT
+- Client: `skilltrack-client`
+- Role: `user`, `admin`
+- Uses JWT with `preferred_username` and `email` claims
 - Frontend uses Bearer token for requests
 
 ---
@@ -81,12 +81,22 @@ OPENAI_MAX_TOKENS=300
 
 ## 🔁 REST Endpoints
 
-| Method | Path              | Description                 |
-|--------|-------------------|-----------------------------|
-| GET    | `/logs`           | Get authenticated user logs |
-| POST   | `/logs`           | Add a new learning log      |
-| DELETE | `/logs/{id}`      | Delete a learning log by ID |
-| POST   | `/logs/summarize` | Generate a smart summary    |
+### ✏️ Learning Logs
+
+| Method | Path              | Description                     |
+|--------|-------------------|---------------------------------|
+| GET    | `/logs`           | Get authenticated user logs     |
+| POST   | `/logs`           | Add a new learning log          |
+| PUT    | `/logs/{id}`      | Update an existing learning log |
+| DELETE | `/logs/{id}`      | Delete a learning log by ID     |
+| POST   | `/logs/summarize` | Generate a smart summary        |
+
+### 🔒 Admin (Role-based)
+
+| Method | Path                          | Description                  |
+|--------|-------------------------------|------------------------------|
+| GET    | `/admin/users/{id}/logs`      | Get logs for a specific user |
+| GET    | `/admin/users/{id}/summaries` | Get summaries for a user     |
 
 ---
 

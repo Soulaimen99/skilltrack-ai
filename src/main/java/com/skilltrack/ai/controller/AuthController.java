@@ -24,8 +24,8 @@ public class AuthController {
 	public ResponseEntity<UserDto> me( @AuthenticationPrincipal Jwt jwt ) {
 		String username = jwt.getClaimAsString( "preferred_username" );
 		String email = jwt.getClaimAsString( "email" );
-
 		User user = userService.getOrCreate( username, email );
+		
 		return ResponseEntity.ok( UserDto.from( user ) );
 	}
 }

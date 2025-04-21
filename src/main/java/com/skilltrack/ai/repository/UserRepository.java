@@ -26,8 +26,4 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 			@Param( "username" ) String username,
 			@Param( "email" ) String email
 	);
-
-
 }
-
-
