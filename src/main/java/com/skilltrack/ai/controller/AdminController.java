@@ -2,6 +2,7 @@ package com.skilltrack.ai.controller;
 
 import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.dto.SummaryDto;
+import com.skilltrack.ai.dto.UserDto;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.service.LearningLogService;
 import com.skilltrack.ai.service.SummaryService;
@@ -9,13 +10,13 @@ import com.skilltrack.ai.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -36,14 +37,20 @@ public class AdminController {
 		this.userService = userService;
 	}
 
+	@GetMapping( "/users" )
+	public ResponseEntity<List<UserDto>> getAllUsers() {
+		return ResponseEntity.ok( userService.getAllUsers().stream()
+				.map( UserDto::from )
+				.toList() );
+	}
+
 	@GetMapping( "/users/{user_id}/logs" )
 	public ResponseEntity<LearningLogDto.PagedLogsResponse> getUserLogs(
 			@PathVariable UUID user_id,
 			@RequestParam( required = false ) String from,
 			@RequestParam( required = false ) String to,
 			@RequestParam( defaultValue = "0" ) int page,
-			@RequestParam( defaultValue = "10" ) int size,
-			Authentication auth ) {
+			@RequestParam( defaultValue = "10" ) int size ) {
 		User user = userService.getById( user_id );
 
 		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, user ) );
@@ -55,10 +62,9 @@ public class AdminController {
 			@RequestParam( required = false ) String from,
 			@RequestParam( required = false ) String to,
 			@RequestParam( defaultValue = "0" ) int page,
-			@RequestParam( defaultValue = "10" ) int size,
-			Authentication auth ) {
+			@RequestParam( defaultValue = "10" ) int size ) {
 		User user = userService.getById( user_id );
-		
+
 		return ResponseEntity.ok( summaryService.getPagedSummariesResponse( from, to, page, size, user ) );
 	}
 }

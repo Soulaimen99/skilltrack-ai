@@ -40,7 +40,7 @@ public class LearningLog {
 	private String tags;
 
 	@Column( name = "created_at", nullable = false )
-	private LocalDateTime createdAt = LocalDateTime.now();
+	private LocalDateTime createdAt;
 
 	@PrePersist
 	public void prePersist() {

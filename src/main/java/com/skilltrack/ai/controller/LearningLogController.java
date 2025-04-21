@@ -1,6 +1,7 @@
 package com.skilltrack.ai.controller;
 
 import com.skilltrack.ai.dto.LearningLogDto;
+import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.LearningLog;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.service.LearningLogService;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -89,12 +89,12 @@ public class LearningLogController {
 	}
 
 	@PostMapping( "/summarize" )
-	public ResponseEntity<Map<String, String>> summarize( @RequestBody List<LearningLogDto> logs, Authentication auth ) {
+	public ResponseEntity<SummaryDto> summarize( @RequestBody List<LearningLogDto> logs, Authentication auth ) {
 		User user = getUser( auth );
-		List<String> content = logs.stream().map( LearningLogDto::content ).filter( s -> s != null && !s.isBlank() ).toList();
-		SummaryService.SummaryResult result = summaryService.summarizeWithLimitCheck( user, content );
+		SummaryDto summaryDto = summaryService.summarizeWithLimitCheck( user, logs );
+		int remaining = summaryService.remaining( user );
 
-		return ResponseEntity.ok().header( "X-RateLimit-Remaining", String.valueOf( result.remaining() ) )
-				.body( Map.of( "summary", result.summary() ) );
+		return ResponseEntity.ok().header( "X-RateLimit-Remaining", String.valueOf( remaining ) )
+				.body( summaryDto );
 	}
 }

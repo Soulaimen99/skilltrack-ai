@@ -1,5 +1,6 @@
 package com.skilltrack.ai.service;
 
+import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.Summary;
 import com.skilltrack.ai.entity.User;
@@ -65,13 +66,15 @@ public class SummaryService {
 		return summaryRepository.findByUser( user, pageable );
 	}
 
-	public SummaryResult summarizeWithLimitCheck( User user, List<String> contents ) {
+	public SummaryDto summarizeWithLimitCheck( User user, List<LearningLogDto> logs ) {
 		if ( !allow( user ) ) {
 			throw new ResponseStatusException( HttpStatus.TOO_MANY_REQUESTS );
 		}
-		String summary = summarize( user.getUsername(), contents );
+		List<String> contents = LearningLogDto.toContentList( logs );
+		String summaryText = summarize( user.getUsername(), contents );
+		Summary saved = summaryRepository.save( new Summary( null, user, user.getUsername(), summaryText, LocalDateTime.now() ) );
 
-		return new SummaryResult( summary, remaining( user ) );
+		return SummaryDto.from( saved );
 	}
 
 	public String summarize( String username, List<String> contents ) {
@@ -103,9 +106,5 @@ public class SummaryService {
 		return summaryUsageRepository.findByUserAndUsageDate( user, LocalDate.now() )
 				.map( u -> Math.max( 0, dailyLimit - u.getCount() ) )
 				.orElse( dailyLimit );
-	}
-
-	public record SummaryResult( String summary, int remaining ) {
-
 	}
 }

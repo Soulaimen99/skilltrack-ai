@@ -1,5 +1,7 @@
 package com.skilltrack.ai.service;
 
+import com.skilltrack.ai.dto.LearningLogDto;
+import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.SummaryUsage;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.repository.SummaryRepository;
@@ -24,6 +26,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
@@ -108,11 +111,17 @@ class SummaryTest {
 		AssistantMessage message = new AssistantMessage( "mocked summary" );
 		Generation generation = new Generation( message );
 		ChatResponse response = new ChatResponse( List.of( generation ), new ChatResponseMetadata() );
-
 		when( chatModel.call( any( Prompt.class ) ) ).thenReturn( response );
 
-		SummaryService.SummaryResult result = summaryService.summarizeWithLimitCheck( user, List.of( "Log 1", "Log 2" ) );
-		assertTrue( result.summary().contains( "mocked" ) );
-		assertTrue( result.remaining() >= 0 );
+		List<LearningLogDto> logs = List.of(
+				new LearningLogDto( null, user.getUsername(), "Learned Java Streams", "java", null ),
+				new LearningLogDto( null, user.getUsername(), "Practiced Spring Boot", "spring", null )
+		);
+		when( summaryRepository.save( any() ) ).thenAnswer( invocation -> invocation.getArgument( 0 ) );
+		SummaryDto summaryDto = summaryService.summarizeWithLimitCheck( user, logs );
+
+		assertEquals( "mocked summary", summaryDto.content() );
+		assertEquals( user.getUsername(), summaryDto.username() );
+		assertNotNull( summaryDto.createdAt() );
 	}
 }

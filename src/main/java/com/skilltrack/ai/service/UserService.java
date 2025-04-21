@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -44,5 +45,9 @@ public class UserService {
 			u.setEmail( email );
 		}
 		return u;
+	}
+
+	public List<User> getAllUsers() {
+		return userRepository.findAll();
 	}
 }

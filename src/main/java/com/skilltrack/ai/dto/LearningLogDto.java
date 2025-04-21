@@ -13,6 +13,13 @@ public record LearningLogDto( UUID id, String username, String content, String t
 		return new LearningLogDto( log.getId(), log.getUser().getUsername(), log.getContent(), log.getTags(), log.getCreatedAt() );
 	}
 
+	public static List<String> toContentList( List<LearningLogDto> logs ) {
+		return logs.stream()
+				.map( LearningLogDto::content )
+				.filter( c -> c != null && !c.isBlank() )
+				.toList();
+	}
+
 	public LearningLog toEntity( User user ) {
 		return new LearningLog( null, user, user.getUsername(), this.content, this.tags, null );
 	}
