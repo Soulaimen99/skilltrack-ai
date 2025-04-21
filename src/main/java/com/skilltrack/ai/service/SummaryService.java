@@ -46,6 +46,11 @@ public class SummaryService {
 		this.summaryUsageService = summaryUsageService;
 	}
 
+	public List<SummaryDto> getAllSummaries( User user ) {
+		List<Summary> summaries = summaryRepository.findByUser( user );
+		return summaries.stream().map( SummaryDto::from ).toList();
+	}
+
 	public SummaryDto.PagedSummariesResponse getPagedSummariesResponse( String from, String to, int page, int size, User user ) {
 		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
 		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
@@ -77,7 +82,7 @@ public class SummaryService {
 		return SummaryDto.from( saved );
 	}
 
-	public String summarize( String username, List<String> contents ) {
+	private String summarize( String username, List<String> contents ) {
 		String promptText = String.format( """
 				You are an intelligent learning assistant for a user named %s.
 				Summarize the following personal learning reflections in a friendly and motivational tone.

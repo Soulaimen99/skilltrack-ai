@@ -5,7 +5,7 @@ import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.service.LearningLogService;
 import com.skilltrack.ai.service.SummaryService;
-import com.skilltrack.ai.service.UserService;
+import com.skilltrack.ai.service.UserLookupService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -41,7 +41,7 @@ class IntegrationTest {
 	MockMvc mockMvc;
 
 	@Autowired
-	UserService userService;
+	UserLookupService userLookupService;
 
 	@Autowired
 	LearningLogService learningLogService;
@@ -51,8 +51,8 @@ class IntegrationTest {
 
 	@BeforeEach
 	void setup() {
-		when( userService.get( any(), any() ) ).thenReturn( testUser );
-		when( userService.getById( testUser.getId() ) ).thenReturn( testUser );
+		when( userLookupService.get( any(), any() ) ).thenReturn( testUser );
+		when( userLookupService.getById( testUser.getId() ) ).thenReturn( testUser );
 	}
 
 	@Test
@@ -99,8 +99,8 @@ class IntegrationTest {
 	static class MockedBeans {
 
 		@Bean
-		UserService userService() {
-			return Mockito.mock( UserService.class );
+		UserLookupService userLookupService() {
+			return Mockito.mock( UserLookupService.class );
 		}
 
 		@Bean

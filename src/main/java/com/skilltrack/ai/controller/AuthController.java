@@ -2,7 +2,9 @@ package com.skilltrack.ai.controller;
 
 import com.skilltrack.ai.dto.UserDto;
 import com.skilltrack.ai.entity.User;
-import com.skilltrack.ai.service.UserService;
+import com.skilltrack.ai.service.LearningLogService;
+import com.skilltrack.ai.service.SummaryService;
+import com.skilltrack.ai.service.UserLookupService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -10,22 +12,33 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
+
 @RestController
 @RequestMapping( "/api/auth" )
 public class AuthController {
 
-	private final UserService userService;
+	private final UserLookupService userLookupService;
 
-	public AuthController( UserService userService ) {
-		this.userService = userService;
+	private final SummaryService summaryService;
+
+	private final LearningLogService learningLogService;
+
+	public AuthController( UserLookupService userLookupService, SummaryService summaryService, LearningLogService learningLogService ) {
+		this.userLookupService = userLookupService;
+		this.summaryService = summaryService;
+		this.learningLogService = learningLogService;
 	}
 
 	@GetMapping( "/me" )
 	public ResponseEntity<UserDto> me( @AuthenticationPrincipal Jwt jwt ) {
 		String username = jwt.getClaimAsString( "preferred_username" );
 		String email = jwt.getClaimAsString( "email" );
-		User user = userService.getOrCreate( username, email );
-		
-		return ResponseEntity.ok( UserDto.from( user ) );
+		User user = userLookupService.getOrCreate( username, email );
+
+		int remainingSummaries = summaryService.remaining( user );
+		LocalDate lastLocalDate = learningLogService.getLastLogDate( user );
+
+		return ResponseEntity.ok( UserDto.from( user, remainingSummaries, lastLocalDate ) );
 	}
 }

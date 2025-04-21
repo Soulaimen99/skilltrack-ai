@@ -21,34 +21,24 @@ and authenticates via Keycloak. Built with PostgreSQL and ready for local develo
 
 1. **Start PostgreSQL and Keycloak via Docker Compose**
 
-   ```bash
-   docker compose -f postgres/docker-compose.yml up -d
-   docker compose -f keycloak/docker-compose.yml up -d
-   ```
+```bash
+docker compose -f postgres/docker-compose.yml up -d
+docker compose -f keycloak/docker-compose.yml up -d
+```
 
 2. **Set environment variables in `.env`**
 
-   ```dotenv
-   POSTGRES_DB=skilltrack
-   POSTGRES_USER=youruser
-   POSTGRES_PASSWORD=yourpass
-   OPENAI_API_KEY=sk-xxxx...
-   ```
+```env
+POSTGRES_DB=skilltrack
+POSTGRES_USER=youruser
+POSTGRES_PASSWORD=yourpass
+OPENAI_API_KEY=sk-xxxx...
+```
 
 3. **Run the app**
 
-   ```bash
-   ./mvnw spring-boot:run
-   ```
-
----
-
-## 🧪 Testing
-
-Runs with H2 in-memory DB using the `test` profile.
-
 ```bash
-./mvnw test -Dspring.profiles.active=test
+./mvnw spring-boot:run
 ```
 
 ---
@@ -57,9 +47,37 @@ Runs with H2 in-memory DB using the `test` profile.
 
 - Realm: `skilltrack`
 - Client: `skilltrack-client`
-- Role: `user`, `admin`
-- Uses JWT with `preferred_username` and `email` claims
-- Frontend uses Bearer token for requests
+- Roles: `user`, `admin`
+- JWT claims used: `preferred_username`, `email`
+- Frontend authenticates via Bearer token
+
+---
+
+## 📁 Features
+
+### 🧑‍🎓 User Features
+
+- ✅ Add, edit, and delete learning logs
+- ✅ Generate summaries from logs (GPT-3.5 Turbo)
+- ✅ Rate-limited summaries with daily quota
+- ✅ Persistent summaries and logs in PostgreSQL
+- ✅ Filter logs by date range and tag
+- ✅ Export logs/summaries as JSON or TXT
+- ✅ View user insights (log count, top tags, activity)
+- ✅ `/me` endpoint returns current user profile and quota
+
+### 🛡 Admin Features
+
+- ✅ View all users
+- ✅ View logs and summaries of any user
+- ✅ Filter by date and tag
+- ✅ Read-only access (no edit/delete)
+- ✅ Detect inactive users for reminders
+
+### 🧠 AI Tagging (Upcoming)
+
+- Automatically extract tags from learning logs using OpenAI
+- Merge AI tags with user-defined ones before saving
 
 ---
 
@@ -67,8 +85,9 @@ Runs with H2 in-memory DB using the `test` profile.
 
 - Uses `com.theokanning.openai.service.OpenAiService`
 - Summarizes learning logs using `gpt-3.5-turbo`
-- Prompt customizable via `SummaryService.java`
-- Temperature and model configurable in `.env`
+- Prompt defined in `SummaryService.java`
+- Rate-limiting via custom usage tracking entity
+- Configurable via environment:
 
 ```properties
 OPENAI_API_KEY=sk-...
@@ -83,27 +102,40 @@ OPENAI_MAX_TOKENS=300
 
 ### ✏️ Learning Logs
 
-| Method | Path              | Description                     |
-|--------|-------------------|---------------------------------|
-| GET    | `/logs`           | Get authenticated user logs     |
-| POST   | `/logs`           | Add a new learning log          |
-| PUT    | `/logs/{id}`      | Update an existing learning log |
-| DELETE | `/logs/{id}`      | Delete a learning log by ID     |
-| POST   | `/logs/summarize` | Generate a smart summary        |
+| Method | Path              | Description                  |
+|--------|-------------------|------------------------------|
+| GET    | `/logs`           | Get current user's logs      |
+| POST   | `/logs`           | Add a new learning log       |
+| PUT    | `/logs/{id}`      | Update a learning log        |
+| DELETE | `/logs/{id}`      | Delete a learning log        |
+| POST   | `/logs/summarize` | Generate a summary from logs |
+| GET    | `/logs/export`    | Export logs (json/txt)       |
 
-### 🔒 Admin (Role-based)
+### 🧑‍💼 Admin Endpoints (Requires `admin` role)
 
-| Method | Path                          | Description                  |
-|--------|-------------------------------|------------------------------|
-| GET    | `/admin/users/{id}/logs`      | Get logs for a specific user |
-| GET    | `/admin/users/{id}/summaries` | Get summaries for a user     |
+| Method | Path                          | Description                       |
+|--------|-------------------------------|-----------------------------------|
+| GET    | `/admin/users`                | List all users                    |
+| GET    | `/admin/users/{id}/logs`      | Get logs for a specific user      |
+| GET    | `/admin/users/{id}/summaries` | Get summaries for a specific user |
+| GET    | `/admin/users/{id}/insights`  | User activity insights            |
+
+---
+
+## 🧪 Testing
+
+Runs with H2 in-memory DB using the `test` profile. Flyway is disabled in test mode.
+
+```bash
+./mvnw test -Dspring.profiles.active=test
+```
 
 ---
 
 ## 📦 CI/CD
 
-- GitHub Actions
-- Runs tests using H2 (`test` profile) on push to `main`
+- GitHub Actions workflow
+- Runs tests via H2 with profile `test` on push to `main`
 
 ---
 
