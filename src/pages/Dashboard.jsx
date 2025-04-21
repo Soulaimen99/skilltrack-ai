@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { useKeycloak } from "@react-keycloak/web";
-import DateFilter from "./components/DateFilter";
-import TagFilter from "./components/TagFilter";
-import LogList from "./components/LogList";
-import SummaryBox from "./components/SummaryBox";
-import { isDateInRange } from "./utils/dateUtils";
+import DateFilter from "../components/DateFilter";
+import TagFilter from "../components/TagFilter";
+import LogList from "../components/LogList";
+import SummaryBox from "../components/SummaryBox";
+import { isDateInRange } from "../utils/dateUtils";
 
 export default function Dashboard() {
   const { keycloak } = useKeycloak();
@@ -99,6 +99,26 @@ export default function Dashboard() {
     }
   };
 
+  const handleUpdate = async (id, content, tags) => {
+    try {
+      const res = await fetch(`/logs/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${keycloak.token}`,
+        },
+        body: JSON.stringify({ content, tags }),
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const updatedLog = await res.json();
+      setAllLogs((prev) =>
+        prev.map((log) => (log.id === id ? updatedLog : log))
+      );
+    } catch (err) {
+      console.error("Failed to update log:", err);
+    }
+  };
+
   const handleDelete = async (id) => {
     try {
       const res = await fetch(`/logs/${id}`, {
@@ -129,7 +149,7 @@ export default function Dashboard() {
       const remaining = res.headers.get("X-RateLimit-Remaining");
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
-      setSummary(data.summary);
+      setSummary(data);
       setRemaining(remaining);
     } catch (err) {
       console.error("Error generating summary:", err);
@@ -159,6 +179,7 @@ export default function Dashboard() {
         <LogList
           logs={logs}
           activeTag={activeTag}
+          handleUpdate={handleUpdate}
           handleDelete={handleDelete}
         />
       )}
