@@ -7,10 +7,13 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public interface SummaryRepository extends JpaRepository<Summary, Long> {
 
-	Page<Summary> findByUserAndCreatedAtBetween( User user, LocalDateTime from, LocalDateTime to, Pageable pageable );
+	List<Summary> findByUser( User user );
 
 	Page<Summary> findByUser( User user, Pageable pageable );
+
+	Page<Summary> findByUserAndCreatedAtBetween( User user, LocalDateTime from, LocalDateTime to, Pageable pageable );
 }
