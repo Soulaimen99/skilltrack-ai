@@ -3,7 +3,7 @@ import { useKeycloak } from "@react-keycloak/web";
 import TagFilter from "../components/TagFilter";
 import DateFilter from "../components/DateFilter";
 import LogList from "../components/LogList";
-import SummaryBox from "../components/SummaryBox";
+import SummaryList from "../components/SummaryList";
 import { isDateInRange } from "../utils/dateUtils";
 
 export default function AdminPanel() {
@@ -12,13 +12,13 @@ export default function AdminPanel() {
   const [selectedUserId, setSelectedUserId] = useState("");
   const [logs, setLogs] = useState([]);
   const [allLogs, setAllLogs] = useState([]);
-  const [summary, setSummary] = useState("");
-  const [remaining, setRemaining] = useState("");
+  const [summaries, setSummaries] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [loadingSummary, setLoadingSummary] = useState(false);
   const [activeTag, setActiveTag] = useState(null);
   const [presetRange, setPresetRange] = useState("all");
   const [dateRange, setDateRange] = useState("");
+  const [loadingExportLogs, setLoadingExportLogs] = useState(false);
+  const [loadingExportSummaries, setLoadingExportSummaries] = useState(false);
 
   const allTags = Array.from(
     new Set(
@@ -57,14 +57,14 @@ export default function AdminPanel() {
         const logs = logsData.content || [];
         setAllLogs(logs);
 
-        const summaryRes = await fetch(
+        const summariesRes = await fetch(
           `/admin/users/${selectedUserId}/summaries?${params.toString()}`,
           {
             headers: { Authorization: `Bearer ${keycloak.token}` },
           }
         );
-        const summaryData = await summaryRes.json();
-        setSummary(summaryData.content?.[0] || "");
+        const summariesData = await summariesRes.json();
+        setSummaries(summariesData.content || "");
       } catch (error) {
         console.error("Error fetching logs or summary:", error);
       } finally {
@@ -88,6 +88,74 @@ export default function AdminPanel() {
     });
     setLogs(filtered);
   }, [activeTag, dateRange, allLogs]);
+
+  const handleExportUserLogs = async (format = "json") => {
+    if (!selectedUserId) return;
+    setLoadingExportLogs(true);
+    try {
+      const params = new URLSearchParams();
+      if (dateRange.from) params.append("from", dateRange.from);
+      if (dateRange.to) params.append("to", dateRange.to);
+
+      const res = await fetch(
+        `/admin/users/${selectedUserId}/logs?${params.toString()}`,
+        {
+          headers: { Authorization: `Bearer ${keycloak.token}` },
+        }
+      );
+
+      if (!res.ok) throw new Error(await res.text());
+      const result = await res.json();
+      const blob = new Blob([JSON.stringify(result.content, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `user_${selectedUserId}_logs.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export user logs:", err);
+    } finally {
+      setLoadingExportLogs(false);
+    }
+  };
+
+  const handleExportUserSummaries = async (format = "json") => {
+    if (!selectedUserId) return;
+    setLoadingExportSummaries(true);
+    try {
+      const params = new URLSearchParams();
+      if (dateRange.from) params.append("from", dateRange.from);
+      if (dateRange.to) params.append("to", dateRange.to);
+
+      const res = await fetch(
+        `/admin/users/${selectedUserId}/summaries?${params.toString()}`,
+        {
+          headers: { Authorization: `Bearer ${keycloak.token}` },
+        }
+      );
+
+      if (!res.ok) throw new Error(await res.text());
+      const result = await res.json();
+      const blob = new Blob([JSON.stringify(result.content, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `user_${selectedUserId}_summaries.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export user summaries:", err);
+    } finally {
+      setLoadingExportSummaries(false);
+    }
+  };
 
   return (
     <div className="admin-panel">
@@ -128,14 +196,31 @@ export default function AdminPanel() {
             <LogList logs={logs} activeTag={activeTag} readOnly={true} />
           )}
 
-          <SummaryBox
-            summary={summary}
-            loadingSummary={loadingSummary}
-            logs={logs}
-            dateRange={dateRange}
-            remaining={remaining}
-            readOnly={true}
-          />
+          <h3>User Summaries</h3>
+          {loading ? (
+            <p>Loading summaries...</p>
+          ) : (
+            <SummaryList summaries={summaries} />
+          )}
+
+          <div className="admin-export">
+            <h3>Export User Data</h3>
+            <button
+              onClick={() => handleExportUserLogs("json")}
+              disabled={loadingExportLogs}
+            >
+              Export Logs (JSON)
+              {loadingExportLogs && <span className="spinner" />}
+            </button>
+
+            <button
+              onClick={() => handleExportUserSummaries("json")}
+              disabled={loadingExportSummaries}
+            >
+              Export Summaries (JSON)
+              {loadingExportSummaries && <span className="spinner" />}
+            </button>
+          </div>
         </>
       )}
     </div>
