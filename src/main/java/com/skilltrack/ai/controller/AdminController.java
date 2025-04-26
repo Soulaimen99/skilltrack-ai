@@ -56,7 +56,7 @@ public class AdminController {
 			@RequestParam( required = false ) String from,
 			@RequestParam( required = false ) String to,
 			@RequestParam( defaultValue = "0" ) int page,
-			@RequestParam( defaultValue = "10" ) int size ) {
+			@RequestParam( required = false ) Integer size ) {
 		User user = userLookupService.getById( user_id );
 
 		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, user ) );
@@ -68,7 +68,7 @@ public class AdminController {
 			@RequestParam( required = false ) String from,
 			@RequestParam( required = false ) String to,
 			@RequestParam( defaultValue = "0" ) int page,
-			@RequestParam( defaultValue = "10" ) int size ) {
+			@RequestParam( required = false ) Integer size ) {
 		User user = userLookupService.getById( user_id );
 
 		return ResponseEntity.ok( summaryService.getPagedSummariesResponse( from, to, page, size, user ) );

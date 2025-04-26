@@ -48,7 +48,7 @@ public class LearningLogController {
 	public ResponseEntity<LearningLogDto.PagedLogsResponse> readLogs( @RequestParam( required = false ) String from,
 	                                                                  @RequestParam( required = false ) String to,
 	                                                                  @RequestParam( defaultValue = "0" ) int page,
-	                                                                  @RequestParam( defaultValue = "10" ) int size,
+	                                                                  @RequestParam( required = false ) Integer size,
 	                                                                  Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
 
@@ -84,10 +84,7 @@ public class LearningLogController {
 	}
 
 	@GetMapping( "/export" )
-	public ResponseEntity<byte[]> exportLogs(
-			@RequestParam( defaultValue = "json" ) String format,
-			Authentication auth
-	) {
+	public ResponseEntity<byte[]> exportLogs( @RequestParam( defaultValue = "json" ) String format, Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
 		String content = exportService.exportLogs( user, format );
 

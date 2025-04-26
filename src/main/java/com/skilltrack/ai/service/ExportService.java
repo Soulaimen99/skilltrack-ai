@@ -2,6 +2,8 @@ package com.skilltrack.ai.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.User;
@@ -43,7 +45,10 @@ public class ExportService {
 
 	private String exportAsJson( Object data ) {
 		try {
-			return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString( data );
+			ObjectMapper mapper = new ObjectMapper();
+			mapper.registerModule( new JavaTimeModule() );
+			mapper.disable( SerializationFeature.WRITE_DATES_AS_TIMESTAMPS );
+			return mapper.writerWithDefaultPrettyPrinter().writeValueAsString( data );
 		}
 		catch ( JsonProcessingException e ) {
 			throw new RuntimeException( "Failed to export as JSON", e );

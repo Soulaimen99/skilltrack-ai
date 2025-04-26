@@ -51,10 +51,16 @@ public class SummaryService {
 		return summaries.stream().map( SummaryDto::from ).toList();
 	}
 
-	public SummaryDto.PagedSummariesResponse getPagedSummariesResponse( String from, String to, int page, int size, User user ) {
+	public SummaryDto.PagedSummariesResponse getPagedSummariesResponse( String from, String to, int page, Integer size, User user ) {
 		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
 		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
-		Pageable pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
+		Pageable pageable;
+		if ( size == null ) {
+			pageable = Pageable.unpaged();
+		}
+		else {
+			pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
+		}
 		Page<Summary> summaryPage = getSummaries( user, dtFrom, dtTo, pageable );
 		List<SummaryDto> content = summaryPage.getContent().stream()
 				.map( SummaryDto::from )

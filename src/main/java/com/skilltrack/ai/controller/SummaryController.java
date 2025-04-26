@@ -45,15 +45,11 @@ public class SummaryController {
 		SummaryDto summaryDto = summaryService.summarizeWithLimitCheck( user, logs );
 		int remaining = summaryService.remaining( user );
 
-		return ResponseEntity.ok().header( "X-RateLimit-Remaining", String.valueOf( remaining ) )
-				.body( summaryDto );
+		return ResponseEntity.ok().header( "X-RateLimit-Remaining", String.valueOf( remaining ) ).body( summaryDto );
 	}
 
 	@GetMapping( "/export" )
-	public ResponseEntity<byte[]> exportSummaries(
-			@RequestParam( defaultValue = "json" ) String format,
-			Authentication auth
-	) {
+	public ResponseEntity<byte[]> exportSummaries( @RequestParam( defaultValue = "json" ) String format, Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
 		String content = exportService.exportSummaries( user, format );
 		String contentType = format.equalsIgnoreCase( "txt" ) ? "text/plain" : "application/json";

@@ -35,10 +35,16 @@ public class LearningLogService {
 		return logs.stream().map( LearningLogDto::from ).toList();
 	}
 
-	public LearningLogDto.PagedLogsResponse getPagedLogsResponse( String from, String to, int page, int size, User user ) {
+	public LearningLogDto.PagedLogsResponse getPagedLogsResponse( String from, String to, int page, Integer size, User user ) {
 		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
 		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
-		Pageable pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
+		Pageable pageable;
+		if ( size == null ) {
+			pageable = Pageable.unpaged();
+		}
+		else {
+			pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
+		}
 		Page<LearningLog> logPage = getLogs( user, dtFrom, dtTo, pageable );
 		List<LearningLogDto> content = logPage.getContent().stream()
 				.map( LearningLogDto::from )
