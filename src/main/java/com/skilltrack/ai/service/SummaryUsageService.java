@@ -20,6 +20,6 @@ public class SummaryUsageService {
 
 	@Transactional( propagation = Propagation.REQUIRES_NEW )
 	public void insertNewUsage( User user ) {
-		repo.insertNewUsage( UUID.randomUUID(), user.getId(), user.getUsername(), LocalDate.now() );
+		repo.insertNewUsage( UUID.randomUUID(), user.getId(), LocalDate.now() );
 	}
 }

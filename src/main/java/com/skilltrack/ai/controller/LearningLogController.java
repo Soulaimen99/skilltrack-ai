@@ -2,9 +2,11 @@ package com.skilltrack.ai.controller;
 
 import com.skilltrack.ai.dto.LearningInsightsDto;
 import com.skilltrack.ai.dto.LearningLogDto;
+import com.skilltrack.ai.entity.LearningGoal;
 import com.skilltrack.ai.entity.LearningLog;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.service.ExportService;
+import com.skilltrack.ai.service.LearningGoalService;
 import com.skilltrack.ai.service.LearningLogService;
 import com.skilltrack.ai.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -38,10 +40,13 @@ public class LearningLogController {
 
 	private final ExportService exportService;
 
-	public LearningLogController( LearningLogService learningLogService, UserService userService, ExportService exportService ) {
+	private final LearningGoalService learningGoalService;
+
+	public LearningLogController( LearningLogService learningLogService, UserService userService, ExportService exportService, LearningGoalService learningGoalService ) {
 		this.learningLogService = learningLogService;
 		this.userService = userService;
 		this.exportService = exportService;
+		this.learningGoalService = learningGoalService;
 	}
 
 	@GetMapping
@@ -58,7 +63,11 @@ public class LearningLogController {
 	@PostMapping
 	public ResponseEntity<LearningLogDto> createLog( @RequestBody LearningLogDto logDto, Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
-		LearningLog created = learningLogService.addLog( logDto.toEntity( user ) );
+		LearningGoal goal = null;
+		if ( logDto.goalId() != null ) {
+			goal = learningGoalService.getByIdForUser( user, logDto.goalId() );
+		}
+		LearningLog created = learningLogService.addLog( logDto.toEntity( user, goal ) );
 
 		return ResponseEntity.status( HttpStatus.CREATED )
 				.body( LearningLogDto.from( learningLogService.addLog( created ) ) );
@@ -67,7 +76,11 @@ public class LearningLogController {
 	@PutMapping( "/{id}" )
 	public ResponseEntity<LearningLogDto> updateLog( @PathVariable UUID id, @RequestBody LearningLogDto logDto, Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
-		LearningLog updated = learningLogService.editLog( id, logDto.toEntity( user ) );
+		LearningGoal goal = null;
+		if ( logDto.goalId() != null ) {
+			goal = learningGoalService.getByIdForUser( user, logDto.goalId() );
+		}
+		LearningLog updated = learningLogService.editLog( id, logDto.toEntity( user, goal ) );
 
 		return ResponseEntity.ok( LearningLogDto.from( updated ) );
 	}

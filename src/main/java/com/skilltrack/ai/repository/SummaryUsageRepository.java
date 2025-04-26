@@ -27,6 +27,6 @@ public interface SummaryUsageRepository extends JpaRepository<SummaryUsage, Long
 
 	@Modifying
 	@Transactional
-	@Query( value = "INSERT INTO summary_usage (id, user_id, username, usage_date, count) VALUES (:id, :userId, :username, :date, 1)", nativeQuery = true )
-	void insertNewUsage( @Param( "id" ) UUID id, @Param( "userId" ) UUID userId, @Param( "username" ) String username, @Param( "date" ) LocalDate date );
+	@Query( value = "INSERT INTO summary_usage (id, user_id, usage_date, count) VALUES (:id, :userId, :date, 1)", nativeQuery = true )
+	void insertNewUsage( @Param( "id" ) UUID id, @Param( "userId" ) UUID userId, @Param( "date" ) LocalDate date );
 }

@@ -91,7 +91,7 @@ class SummaryTest {
 	@Test
 	void testRemaining_withExistingUsage() {
 		when( summaryUsageRepository.findByUserAndUsageDate( eq( user ), any() ) )
-				.thenReturn( Optional.of( new SummaryUsage( null, user, user.getUsername(), LocalDate.now(), 3 ) ) );
+				.thenReturn( Optional.of( new SummaryUsage( null, user, LocalDate.now(), 3 ) ) );
 
 		assertEquals( 7, summaryService.remaining( user ) );
 	}
@@ -114,8 +114,8 @@ class SummaryTest {
 		when( chatModel.call( any( Prompt.class ) ) ).thenReturn( response );
 
 		List<LearningLogDto> logs = List.of(
-				new LearningLogDto( null, user.getUsername(), "Learned Java Streams", "java", null ),
-				new LearningLogDto( null, user.getUsername(), "Practiced Spring Boot", "spring", null )
+				new LearningLogDto( null, user.getUsername(), "Learned Java Streams", "java", null, null, null ),
+				new LearningLogDto( null, user.getUsername(), "Practiced Spring Boot", "spring", null, null, null )
 		);
 		when( summaryRepository.save( any() ) ).thenAnswer( invocation -> invocation.getArgument( 0 ) );
 		SummaryDto summaryDto = summaryService.summarizeWithLimitCheck( user, logs );

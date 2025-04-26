@@ -39,7 +39,7 @@ public class SecurityConfig {
 				.csrf( AbstractHttpConfigurer::disable )
 				.authorizeHttpRequests( auth -> auth
 						.requestMatchers( SWAGGER_WHITELIST ).permitAll()
-						.requestMatchers( "/logs/**", "/api/auth/**", "/admin/**" ).authenticated()
+						.requestMatchers( "/goals/**", "/logs/**", "/summaries/**", "/api/auth/**", "/admin/**" ).authenticated()
 						.anyRequest().authenticated()
 				)
 				.oauth2ResourceServer( oauth2 -> oauth2

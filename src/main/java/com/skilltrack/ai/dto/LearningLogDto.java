@@ -1,5 +1,6 @@
 package com.skilltrack.ai.dto;
 
+import com.skilltrack.ai.entity.LearningGoal;
 import com.skilltrack.ai.entity.LearningLog;
 import com.skilltrack.ai.entity.User;
 
@@ -7,10 +8,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public record LearningLogDto( UUID id, String username, String content, String tags, LocalDateTime date ) {
+public record LearningLogDto( UUID id, String username, String content, String tags, UUID goalId, String goalTitle,
+                              LocalDateTime date ) {
 
 	public static LearningLogDto from( LearningLog log ) {
-		return new LearningLogDto( log.getId(), log.getUser().getUsername(), log.getContent(), log.getTags(), log.getCreatedAt() );
+		return new LearningLogDto(
+				log.getId(),
+				log.getUser().getUsername(),
+				log.getContent(),
+				log.getTags(),
+				log.getGoal() != null ? log.getGoal().getId() : null,
+				log.getGoal() != null ? log.getGoal().getTitle() : null,
+				log.getCreatedAt() );
 	}
 
 	public static List<String> toContentList( List<LearningLogDto> logs ) {
@@ -20,8 +29,8 @@ public record LearningLogDto( UUID id, String username, String content, String t
 				.toList();
 	}
 
-	public LearningLog toEntity( User user ) {
-		return new LearningLog( null, user, user.getUsername(), this.content, this.tags, null );
+	public LearningLog toEntity( User user, LearningGoal goal ) {
+		return new LearningLog( null, user, this.content, this.tags, goal, null );
 	}
 
 	public record PagedLogsResponse(

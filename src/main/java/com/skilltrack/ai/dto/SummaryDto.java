@@ -11,7 +11,7 @@ public record SummaryDto( UUID id, String username, String content, LocalDateTim
 	public static SummaryDto from( Summary summary ) {
 		return new SummaryDto(
 				summary.getId(),
-				summary.getUsername(),
+				summary.getUser().getUsername(),
 				summary.getContent(),
 				summary.getCreatedAt()
 		);

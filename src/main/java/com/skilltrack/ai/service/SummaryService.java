@@ -83,7 +83,7 @@ public class SummaryService {
 		}
 		List<String> contents = LearningLogDto.toContentList( logs );
 		String summaryText = summarize( user.getUsername(), contents );
-		Summary saved = summaryRepository.save( new Summary( null, user, user.getUsername(), summaryText, LocalDateTime.now() ) );
+		Summary saved = summaryRepository.save( new Summary( null, user, summaryText, LocalDateTime.now() ) );
 
 		return SummaryDto.from( saved );
 	}

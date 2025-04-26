@@ -32,9 +32,6 @@ public class Summary {
 	@JoinColumn( name = "user_id" )
 	private User user;
 
-	@Column( name = "username", nullable = false )
-	private String username;
-
 	@Column( columnDefinition = "TEXT" )
 	private String content;
 

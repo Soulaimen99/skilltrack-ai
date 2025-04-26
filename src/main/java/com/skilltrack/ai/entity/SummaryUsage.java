@@ -32,9 +32,6 @@ public class SummaryUsage {
 	@JoinColumn( name = "user_id" )
 	private User user;
 
-	@Column( name = "username", nullable = false )
-	private String username;
-
 	@Column( name = "usage_date", nullable = false )
 	private LocalDate usageDate;
 
