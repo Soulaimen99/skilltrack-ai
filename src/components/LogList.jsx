@@ -66,6 +66,11 @@ export default function LogList({
             ) : (
               <>
                 <div className="log-left">
+                  {log.goalTitle && (
+                    <div className="log-main">
+                      <span className="label">Goal:</span> {log.goalTitle}
+                    </div>
+                  )}
                   <div className="log-main">
                     <span className="label">Content:</span> {log.content}
                   </div>

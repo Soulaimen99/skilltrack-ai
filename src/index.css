@@ -53,7 +53,7 @@ body {
 }
 
 .container {
-  max-width: 1200px;
+  max-width: 1400px;
   margin: 0 auto;
   background: var(--surface);
   padding: 2rem;

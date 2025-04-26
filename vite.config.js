@@ -9,6 +9,7 @@ export default defineConfig({
       "/admin/users": "http://localhost:8081",
       "/logs": "http://localhost:8081",
       "/summaries": "http://localhost:8081",
+      "/goals": "http://localhost:8081",
     },
     port: 3000,
   },

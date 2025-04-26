@@ -7,7 +7,16 @@ import App from "./App";
 import "./index.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
-  <ReactKeycloakProvider authClient={keycloak}>
+  <ReactKeycloakProvider
+    authClient={keycloak}
+    initOptions={{
+      onLoad: "login-required",
+      checkLoginIframe: false,
+      pkceMethod: "S256",
+    }}
+    autoRefreshToken={true}
+    persistTokens={true} 
+  >
     <BrowserRouter>
       <App />
     </BrowserRouter>
