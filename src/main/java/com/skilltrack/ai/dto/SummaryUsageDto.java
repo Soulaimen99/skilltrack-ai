@@ -8,7 +8,7 @@ public record SummaryUsageDto( String username, LocalDate usageDate, int count )
 
 	public static SummaryUsageDto from( SummaryUsage usage ) {
 		return new SummaryUsageDto(
-				usage.getUsername(),
+				usage.getUser().getUsername(),
 				usage.getUsageDate(),
 				usage.getCount()
 		);
