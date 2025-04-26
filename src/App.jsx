@@ -1,8 +1,11 @@
 import { useKeycloak } from "@react-keycloak/web";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Header from "./components/Header";
-import Dashboard from "./pages/Dashboard";
-import AdminPanel from "./pages/AdminPanel";
+import GoalsPage from "./pages/GoalsPage";
+import InstructionsPage from "./pages/InstructionsPage";
+import LogsPage from "./pages/LogsPage";
+import ProgressPage from "./pages/ProgressPage";
+import AdminPanelPage from "./pages/AdminPanelPage";
 import "./index.css";
 
 export default function App() {
@@ -20,9 +23,12 @@ export default function App() {
       <Header />
       <main>
         <Routes>
-          <Route path="/dashboard" element={<Dashboard />} />
-          {isAdmin && <Route path="/admin" element={<AdminPanel />} />}
-          <Route path="*" element={<Navigate to="/dashboard" />} />
+          <Route path="/goals" element={<GoalsPage />} />
+          <Route path="/instructions" element={<InstructionsPage />} />
+          <Route path="/logs" element={<LogsPage />} />
+          <Route path="/progress" element={<ProgressPage />} />
+          {isAdmin && <Route path="/admin" element={<AdminPanelPage />} />}
+          <Route path="*" element={<Navigate to="/goals" />} />
         </Routes>
       </main>
     </div>

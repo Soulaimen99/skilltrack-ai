@@ -17,25 +17,23 @@ export default function Header() {
     keycloak.logout({ redirectUri: window.location.origin });
   };
 
-  const handleRegister = () => {
-    const registerUrl = `${keycloak.authServerUrl}realms/${
-      keycloak.realm
-    }/protocol/openid-connect/registrations?client_id=${
-      keycloak.clientId
-    }&response_type=code&scope=openid&redirect_uri=${encodeURIComponent(
-      window.location.origin
-    )}`;
-    window.location.href = registerUrl;
-  };
-
   return (
     <nav>
       <div>
         <strong>SkillTrack</strong>
       </div>
       <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
-        <NavLink to="/dashboard" className="nav-link">
-          Dashboard
+        <NavLink to="/goals" className="nav-link">
+          Goals
+        </NavLink>
+        <NavLink to="/instructions" className="nav-link">
+          Instructions
+        </NavLink>
+        <NavLink to="/logs" className="nav-link">
+          Logs
+        </NavLink>
+        <NavLink to="/progress" className="nav-link">
+          Progress
         </NavLink>
         {isAdmin && (
           <NavLink to="/admin" className="nav-link">
