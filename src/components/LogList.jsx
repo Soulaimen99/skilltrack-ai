@@ -28,6 +28,10 @@ export default function LogList({
     cancelEdit();
   };
 
+  if (logs.length === 0) {
+    return <p>No Learning logs available.</p>;
+  }
+
   return (
     <ul>
       {logs

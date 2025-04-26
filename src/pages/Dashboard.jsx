@@ -21,6 +21,10 @@ export default function Dashboard() {
   const [dateRange, setDateRange] = useState("");
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [insights, setInsights] = useState(null);
+  const [loadingInsights, setLoadingInsights] = useState(false);
+  const [loadingExportLogs, setLoadingExportLogs] = useState(false);
+  const [loadingExportSummaries, setLoadingExportSummaries] = useState(false);
 
   const allTags = Array.from(
     new Set(
@@ -138,7 +142,7 @@ export default function Dashboard() {
   const handleSummarize = async () => {
     setLoadingSummary(true);
     try {
-      const res = await fetch("/logs/summarize", {
+      const res = await fetch("/summaries", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -155,6 +159,66 @@ export default function Dashboard() {
       console.error("Error generating summary:", err);
     } finally {
       setLoadingSummary(false);
+    }
+  };
+
+  const fetchInsights = async () => {
+    setLoadingInsights(true);
+    try {
+      const res = await fetch("/logs/insights", {
+        headers: { Authorization: `Bearer ${keycloak.token}` },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const data = await res.json();
+      setInsights(data);
+    } catch (err) {
+      console.error("Failed to fetch insights:", err);
+    } finally {
+      setLoadingInsights(false);
+    }
+  };
+
+  const handleExportLogs = async (format = "json") => {
+    setLoadingExportLogs(true);
+    try {
+      const res = await fetch(`/logs/export?format=${format}`, {
+        headers: { Authorization: `Bearer ${keycloak.token}` },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `learning_logs.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export logs:", err);
+    } finally {
+      setLoadingExportLogs(false);
+    }
+  };
+
+  const handleExportSummaries = async (format = "json") => {
+    setLoadingExportSummaries(true);
+    try {
+      const res = await fetch(`/summaries/export?format=${format}`, {
+        headers: { Authorization: `Bearer ${keycloak.token}` },
+      });
+      if (!res.ok) throw new Error(await res.text());
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `summaries.${format}`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Failed to export summaries:", err);
+    } finally {
+      setLoadingExportSummaries(false);
     }
   };
 
@@ -218,6 +282,71 @@ export default function Dashboard() {
         dateRange={dateRange}
         remaining={remaining}
       />
+
+      <div className="insights-and-export">
+        <h3>Insights</h3>
+        <button onClick={fetchInsights} disabled={loadingInsights}>
+          {loadingInsights ? (
+            <>
+              Loading Insights
+              <span className="spinner" />
+            </>
+          ) : (
+            "Get Insights"
+          )}
+        </button>
+        {insights && (
+          <ul>
+            <li>
+              <strong>Logs Last 7 Days:</strong> {insights.logsLast7Days}
+            </li>
+            <li>
+              <strong>Logs Last 30 Days:</strong> {insights.logsLast30Days}
+            </li>
+            <li>
+              <strong>Most Used Tag:</strong> {insights.mostUsedTag || "None"}
+            </li>
+            <li>
+              <strong>Last Log Date:</strong> {insights.daysSinceLastLog || "N/A"}
+            </li>
+          </ul>
+        )}
+
+        <h3>Export</h3>
+        <button
+          onClick={() => handleExportLogs("json")}
+          disabled={loadingExportLogs}
+        >
+          Export Logs (JSON)
+          {loadingExportLogs && <span className="spinner" />}
+        </button>
+
+        <button
+          onClick={() => handleExportLogs("txt")}
+          disabled={loadingExportLogs}
+        >
+          Export Logs (TXT)
+          {loadingExportLogs && <span className="spinner" />}
+        </button>
+
+        <br />
+
+        <button
+          onClick={() => handleExportSummaries("json")}
+          disabled={loadingExportSummaries}
+        >
+          Export Summaries (JSON)
+          {loadingExportSummaries && <span className="spinner" />}
+        </button>
+
+        <button
+          onClick={() => handleExportSummaries("txt")}
+          disabled={loadingExportSummaries}
+        >
+          Export Summaries (TXT)
+          {loadingExportSummaries && <span className="spinner" />}
+        </button>
+      </div>
     </div>
   );
 }
