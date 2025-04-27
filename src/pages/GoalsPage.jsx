@@ -13,7 +13,7 @@ export default function GoalsPage() {
 
   const fetchGoals = async () => {
     try {
-      const res = await fetch("/goals", {
+      const res = await fetch("/api/goals", {
         headers: { Authorization: `Bearer ${keycloak.token}` },
       });
       const data = await res.json();
@@ -26,7 +26,7 @@ export default function GoalsPage() {
   const handleCreateGoal = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch("/goals", {
+      const res = await fetch("/api/goals", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -27,7 +27,7 @@ export default function AdminPanel() {
   ).filter(Boolean);
 
   useEffect(() => {
-    fetch("/admin/users", {
+    fetch("/api/admin/users", {
       headers: { Authorization: `Bearer ${keycloak.token}` },
     })
       .then((res) => res.json())

@@ -5,11 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      "/api/auth": "http://localhost:8081",
-      "/admin/users": "http://localhost:8081",
-      "/logs": "http://localhost:8081",
-      "/summaries": "http://localhost:8081",
-      "/goals": "http://localhost:8081",
+      "/api/": "http://localhost:8081",
     },
     port: 3000,
   },

@@ -15,7 +15,7 @@ export default function ProgressPage() {
   const fetchInsights = async () => {
     setLoading(true);
     try {
-      const res = await fetch("/logs/insights", {
+      const res = await fetch("/api/logs/insights", {
         headers: { Authorization: `Bearer ${keycloak.token}` },
       });
       if (!res.ok) throw new Error(await res.text());

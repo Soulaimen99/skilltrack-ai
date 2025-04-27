@@ -18,7 +18,7 @@ export default function InstructionsPage() {
   const fetchLogs = async () => {
     setLoadingLogs(true);
     try {
-      const res = await fetch("/logs?page=0&size=20", {
+      const res = await fetch("/api/logs?page=0&size=20", {
         headers: { Authorization: `Bearer ${keycloak.token}` },
       });
       if (!res.ok) throw new Error(await res.text());
@@ -34,7 +34,7 @@ export default function InstructionsPage() {
   const handleGenerateInstructions = async () => {
     setLoadingInstructions(true);
     try {
-      const res = await fetch("/summaries", {
+      const res = await fetch("/api/summaries", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
