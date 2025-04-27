@@ -29,7 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 @RestController
-@RequestMapping( "/logs" )
+@RequestMapping( "/api/logs" )
 @SecurityRequirement( name = "bearerAuth" )
 @PreAuthorize( "hasRole( 'user' )" )
 public class LearningLogController {

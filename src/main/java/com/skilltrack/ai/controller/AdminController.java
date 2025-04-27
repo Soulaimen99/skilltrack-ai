@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping( "/admin" )
+@RequestMapping( "/api/admin" )
 @SecurityRequirement( name = "bearerAuth" )
 @PreAuthorize( "hasRole( 'admin' )" )
 public class AdminController {

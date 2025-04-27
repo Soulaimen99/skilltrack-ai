@@ -23,7 +23,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping( "/goals" )
+@RequestMapping( "/api/goals" )
 @SecurityRequirement( name = "bearerAuth" )
 @PreAuthorize( "hasRole( 'user' )" )
 public class LearningGoalController {

@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @RestController
-@RequestMapping( "/summaries" )
+@RequestMapping( "/api/summaries" )
 @SecurityRequirement( name = "bearerAuth" )
 @PreAuthorize( "hasRole( 'user' )" )
 public class SummaryController {
