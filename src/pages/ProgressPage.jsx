@@ -35,21 +35,23 @@ export default function ProgressPage() {
       <h2>My Progress</h2>
 
       {insights ? (
-        <ul>
-          <li>
-            <strong>Logs in last 7 days:</strong> {insights.logsLast7Days}
-          </li>
-          <li>
-            <strong>Logs in last 30 days:</strong> {insights.logsLast30Days}
-          </li>
-          <li>
-            <strong>Most used tag:</strong> {insights.mostUsedTag || "None"}
-          </li>
-          <li>
-            <strong>Days since last log:</strong>{" "}
-            {insights.daysSinceLastLog ?? "N/A"}
-          </li>
-        </ul>
+        <div className="insights-and-export">
+          <ul>
+            <li>
+              <strong>Logs in last 7 days:</strong> {insights.logsLast7Days}
+            </li>
+            <li>
+              <strong>Logs in last 30 days:</strong> {insights.logsLast30Days}
+            </li>
+            <li>
+              <strong>Most used tag:</strong> {insights.mostUsedTag || "None"}
+            </li>
+            <li>
+              <strong>Days since last log:</strong>{" "}
+              {insights.daysSinceLastLog ?? "N/A"}
+            </li>
+          </ul>
+        </div>
       ) : (
         <p>No learning activity yet. Start logging your progress!</p>
       )}

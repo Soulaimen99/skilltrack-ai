@@ -1,25 +1,29 @@
 import React from "react";
 
-export default function SummaryList({ summaries = [] }) {
-  if (summaries.length === 0) {
+export default function SummaryList({ summaries }) {
+  if (!summaries.length) {
     return <p>No summaries available.</p>;
   }
 
   return (
-    <div className="summary-list">
-      {summaries.map((summary, idx) => (
-        <div key={summary.id || idx} className="summary-item">
-          <input
-            type="text"
-            value={
-              summary?.createdAt
-                ? `Summary generated at ${new Date(
-                    summary.createdAt
-                  ).toLocaleString()}`
-                : "Summary"
-            }
-            readOnly
-          />
+    <div>
+      {summaries.map((summary) => (
+        <div key={summary.id} className="ai-output">
+          <div
+            style={{
+              marginBottom: "1rem",
+              fontSize: "0.9rem",
+              color: "var(--muted)",
+            }}
+          >
+            Summary generated at{" "}
+            {new Date(summary.createdAt).toLocaleDateString()}{" "}
+            {new Date(summary.createdAt).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </div>
+
           <pre>{summary.content}</pre>
         </div>
       ))}

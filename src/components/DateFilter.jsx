@@ -30,7 +30,7 @@ export default function DateFilter({
 
   return (
     <div className="date-filter">
-      <div style={{ marginBottom: "0.5rem" }}>
+      <div className="preset-buttons">
         <button
           onClick={setAll}
           className={presetRange === "all" ? "active" : ""}

@@ -8,8 +8,10 @@ export default function GoalsPage() {
   const [description, setDescription] = useState("");
 
   useEffect(() => {
-    if (keycloak.authenticated) fetchGoals();
-  }, [keycloak]);
+    if (keycloak.authenticated) {
+      fetchGoals();
+    }
+  }, [keycloak.authenticated]);
 
   const fetchGoals = async () => {
     try {
@@ -66,11 +68,15 @@ export default function GoalsPage() {
       <ul>
         {goals.map((goal) => (
           <li key={goal.id}>
-            <div className="log-left">
-              <div className="log-main">{goal.title}</div>
-              <div className="log-tags">{goal.description || "—"}</div>
-              <div className="log-footer">
-                Created: {new Date(goal.createdAt).toLocaleDateString()}
+            <div className="input-left">
+              <div className="input-first">{goal.title}</div>
+              <div className="input-second">{goal.description || "—"}</div>
+              <div className="input-footer">
+                Created: {new Date(goal.date).toLocaleDateString()}{" "}
+                {new Date(goal.date).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
             </div>
           </li>

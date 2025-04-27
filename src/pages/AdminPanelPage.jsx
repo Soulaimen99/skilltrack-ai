@@ -45,34 +45,29 @@ export default function AdminPanel() {
     params.append("page", "0");
     params.append("size", "100");
 
-    const fetchLogsAndSummary = async () => {
+    const fetchLogsAndSummaries = async () => {
       try {
         const logsRes = await fetch(
-          `/admin/users/${selectedUserId}/logs?${params.toString()}`,
-          {
-            headers: { Authorization: `Bearer ${keycloak.token}` },
-          }
+          `/api/admin/users/${selectedUserId}/logs?${params.toString()}`,
+          { headers: { Authorization: `Bearer ${keycloak.token}` } }
         );
         const logsData = await logsRes.json();
-        const logs = logsData.content || [];
-        setAllLogs(logs);
+        setAllLogs(logsData.content || []);
 
         const summariesRes = await fetch(
-          `/admin/users/${selectedUserId}/summaries?${params.toString()}`,
-          {
-            headers: { Authorization: `Bearer ${keycloak.token}` },
-          }
+          `/api/admin/users/${selectedUserId}/summaries?${params.toString()}`,
+          { headers: { Authorization: `Bearer ${keycloak.token}` } }
         );
         const summariesData = await summariesRes.json();
-        setSummaries(summariesData.content || "");
+        setSummaries(summariesData.content || []);
       } catch (error) {
-        console.error("Error fetching logs or summary:", error);
+        console.error("Error fetching logs or summaries:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchLogsAndSummary();
+    fetchLogsAndSummaries();
   }, [selectedUserId, dateRange, keycloak]);
 
   useEffect(() => {
@@ -98,13 +93,11 @@ export default function AdminPanel() {
       if (dateRange.to) params.append("to", dateRange.to);
 
       const res = await fetch(
-        `/admin/users/${selectedUserId}/logs?${params.toString()}`,
-        {
-          headers: { Authorization: `Bearer ${keycloak.token}` },
-        }
+        `/api/admin/users/${selectedUserId}/logs?${params.toString()}`,
+        { headers: { Authorization: `Bearer ${keycloak.token}` } }
       );
-
       if (!res.ok) throw new Error(await res.text());
+
       const result = await res.json();
       const blob = new Blob([JSON.stringify(result.content, null, 2)], {
         type: "application/json",
@@ -132,13 +125,11 @@ export default function AdminPanel() {
       if (dateRange.to) params.append("to", dateRange.to);
 
       const res = await fetch(
-        `/admin/users/${selectedUserId}/summaries?${params.toString()}`,
-        {
-          headers: { Authorization: `Bearer ${keycloak.token}` },
-        }
+        `/api/admin/users/${selectedUserId}/summaries?${params.toString()}`,
+        { headers: { Authorization: `Bearer ${keycloak.token}` } }
       );
-
       if (!res.ok) throw new Error(await res.text());
+
       const result = await res.json();
       const blob = new Blob([JSON.stringify(result.content, null, 2)], {
         type: "application/json",
@@ -158,10 +149,11 @@ export default function AdminPanel() {
   };
 
   return (
-    <div className="admin-panel">
+    <div className="container">
       <h2>Admin Panel</h2>
+
       <label>
-        Select user:
+        <strong>Select user:</strong>
         <select
           value={selectedUserId}
           onChange={(e) => setSelectedUserId(e.target.value)}
@@ -177,23 +169,25 @@ export default function AdminPanel() {
 
       {selectedUserId && (
         <>
-          <TagFilter
-            allTags={allTags}
-            activeTag={activeTag}
-            setActiveTag={setActiveTag}
-          />
-          <DateFilter
-            dateRange={dateRange}
-            setDateRange={setDateRange}
-            presetRange={presetRange}
-            setPresetRange={setPresetRange}
-          />
+          <div className="filters">
+            <TagFilter
+              allTags={allTags}
+              activeTag={activeTag}
+              setActiveTag={setActiveTag}
+            />
+            <DateFilter
+              dateRange={dateRange}
+              setDateRange={setDateRange}
+              presetRange={presetRange}
+              setPresetRange={setPresetRange}
+            />
+          </div>
 
           <h3>User Logs</h3>
           {loading ? (
             <p>Loading logs...</p>
           ) : (
-            <LogList logs={logs} activeTag={activeTag} readOnly={true} />
+            <LogList logs={logs} readOnly={true} />
           )}
 
           <h3>User Summaries</h3>
