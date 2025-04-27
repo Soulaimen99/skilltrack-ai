@@ -60,7 +60,7 @@ class IntegrationTest {
 		when( learningLogService.getPagedLogsResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
 				.thenReturn( new LearningLogDto.PagedLogsResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
 
-		mockMvc.perform( get( "/logs" )
+		mockMvc.perform( get( "/api/logs" )
 						.with( jwt().jwt( jwt -> jwt
 										.claim( "preferred_username", "testuser" )
 										.claim( "email", "test@example.com" ) )
@@ -73,7 +73,7 @@ class IntegrationTest {
 		when( learningLogService.getPagedLogsResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
 				.thenReturn( new LearningLogDto.PagedLogsResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
 
-		mockMvc.perform( get( "/admin/users/" + testUser.getId() + "/logs" )
+		mockMvc.perform( get( "/api/admin/users/" + testUser.getId() + "/logs" )
 						.with( jwt().jwt( jwt -> jwt
 										.claim( "preferred_username", "admin" )
 										.claim( "email", "admin@example.com" ) )
@@ -86,7 +86,7 @@ class IntegrationTest {
 		when( summaryService.getPagedSummariesResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
 				.thenReturn( new SummaryDto.PagedSummariesResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
 
-		mockMvc.perform( get( "/admin/users/" + testUser.getId() + "/summaries" )
+		mockMvc.perform( get( "/api/admin/users/" + testUser.getId() + "/summaries" )
 						.with( jwt().jwt( jwt -> jwt
 										.claim( "preferred_username", "admin" )
 										.claim( "email", "admin@example.com" ) )
