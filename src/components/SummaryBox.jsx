@@ -12,7 +12,7 @@ export default function SummaryBox({
   const disabled = loadingSummary || logs.length === 0;
 
   return (
-    <div className={`summary ${readOnly ? "read-only" : ""}`}>
+    <div className={`ai-output ${readOnly ? "read-only" : ""}`}>
       {!readOnly && (
         <button onClick={handleSummarize} disabled={disabled}>
           {loadingSummary
@@ -26,25 +26,27 @@ export default function SummaryBox({
 
       {summary?.content && (
         <>
-          {!readOnly && (
-            <input
-              type="text"
-              value={
-                summary?.createdAt
-                  ? `Summary generated at ${new Date(
-                      summary.createdAt
-                    ).toLocaleString()}`
-                  : dateRange?.from && dateRange?.to
-                  ? `Summary from ${dateRange.from} to ${dateRange.to}`
-                  : "Summary"
-              }
-              readOnly
-            />
-          )}
+          <div
+            style={{
+              marginTop: "1rem",
+              marginBottom: "1rem",
+              fontSize: "0.9rem",
+              color: "var(--muted)",
+            }}
+          >
+            {summary?.createdAt
+              ? `Summary generated at ${new Date(
+                  summary.createdAt
+                ).toLocaleString()}`
+              : dateRange?.from && dateRange?.to
+              ? `Summary from ${dateRange.from} to ${dateRange.to}`
+              : "Summary"}
+          </div>
+
           <pre>{summary.content}</pre>
 
           {!readOnly && remaining !== null && (
-            <div className="log-footer">
+            <div className="input-footer">
               <p style={{ fontStyle: "italic", marginTop: "0.5rem" }}>
                 You have {remaining} summaries left today.
               </p>

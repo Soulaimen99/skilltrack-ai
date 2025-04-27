@@ -1,3 +1,4 @@
+/* ---- Root Variables ---- */
 :root[data-theme="light"] {
   --bg: #f9f9f9;
   --fg: #1e1e1e;
@@ -25,7 +26,14 @@
 }
 
 :root {
-  transition: background 0.3s, color 0.3s;
+  transition: all 0.3s ease;
+}
+
+/* ---- Global Resets ---- */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
 body,
@@ -34,31 +42,27 @@ input,
 textarea,
 select,
 button {
-  transition: background 0.3s, color 0.3s, border 0.3s;
   font-family: system-ui, sans-serif;
+  transition: background 0.3s, color 0.3s, border 0.3s;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
+/* ---- Layout ---- */
 body {
   background: var(--bg);
   color: var(--fg);
   font-size: 16px;
-  line-height: 1.6;
-  padding: 2rem;
+  line-height: 1.7;
+  padding: 1rem;
 }
 
 .container {
-  max-width: 1400px;
-  margin: 0 auto;
+  max-width: 1200px;
+  margin: 2rem auto;
   background: var(--surface);
   padding: 2rem;
-  border-radius: 8px;
+  border-radius: 12px;
   border: 1px solid var(--border);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 /* ---- Nav ---- */
@@ -73,22 +77,67 @@ nav span {
   font-weight: 500;
 }
 
+nav.header-nav .logo {
+  font-size: 1.4rem;
+}
+
+nav.header-nav .user-info .input-footer {
+  border-left: 1px solid var(--border);
+  padding-left: 0.4rem;
+  margin-left: 0.4rem;
+}
+
+nav.header-nav .header-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+nav.header-nav .header-buttons button {
+  padding: 0.3rem 0.6rem;
+  margin: 0;
+}
+
 /* ---- Forms and Buttons ---- */
-button,
 input,
 textarea,
 select {
-  font: inherit;
+  width: 100%;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--highlight);
+  outline: none;
+  box-shadow: 0 0 0 2px var(--highlight);
 }
 
 button {
-  padding: 0.5rem 1rem;
-  margin: 0.25rem;
+  padding: 0.75rem 1.25rem;
+  margin: 0.5rem 0;
   background: var(--primary);
   color: var(--surface);
   border: none;
-  border-radius: 6px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 500;
   cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+button:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 button:disabled {
@@ -98,27 +147,33 @@ button:disabled {
   opacity: 0.6;
 }
 
-button:hover:not(:disabled) {
-  background: var(--primary-hover);
+/* ---- Spinner ---- */
+.spinner {
+  border: 4px solid var(--border);
+  border-top: 4px solid var(--highlight);
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+  margin-left: 10px;
+  vertical-align: middle;
 }
 
-input,
-textarea,
-select {
-  width: 100%;
-  margin-bottom: 0.5rem;
-  padding: 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--fg);
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
-/* ---- List Items (Logs and Summaries) ---- */
+/* ---- List Items (Logs, etc.) ---- */
 ul {
   list-style: none;
   padding: 0;
-  margin-bottom: 2rem;
+  margin: 2rem 0;
 }
 
 li {
@@ -126,53 +181,45 @@ li {
   justify-content: space-between;
   align-items: flex-start;
   gap: 1rem;
-  padding: 1rem;
+  padding: 1.5rem;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 12px;
   margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-.summary-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  margin-bottom: 1rem;
-}
-
-
-/* ---- Log Specific ---- */
-.log-left {
+/* ---- Input Specific ---- */
+.input-left {
   flex: 1;
 }
 
-.log-main {
-  font-weight: 500;
-  margin-bottom: 0.25rem;
+.input-first {
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
 }
 
-.log-tags {
-  font-size: 0.9rem;
-  margin-bottom: 0.25rem;
+.input-second,
+.input-third {
+  font-size: 0.95rem;
+  margin-bottom: 0.5rem;
+  color: var(--muted);
 }
 
-.log-footer {
+.input-footer {
   font-size: 0.8rem;
   color: var(--muted);
 }
 
-.log-buttons {
+.input-buttons {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
   align-items: flex-end;
 }
 
-.log-buttons button {
+.input-buttons button {
   width: 40px;
   height: 30px;
   padding: 0.3rem 0.6rem;
@@ -183,27 +230,29 @@ li {
   justify-content: center;
 }
 
-/* ---- Summary Display ---- */
-.summary,
-.summary-list {
+/* ---- AI Outputs (Instructions, Summaries) ---- */
+.ai-output {
   margin-top: 2rem;
+  padding: 2rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
 }
 
-.summary pre,
-.summary-item pre {
+.ai-output h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.ai-output pre {
   margin: 0;
   font-family: inherit;
   font-size: 1rem;
-  line-height: 1.5;
+  line-height: 1.7;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: break-word;
-  min-width: 100%;
-}
-
-.summary-item input {
-  font-weight: bold;
-  margin-bottom: 0.5rem;
 }
 
 /* ---- Filters (Tags, Dates) ---- */
@@ -230,6 +279,8 @@ li {
   background: var(--border);
   color: var(--fg);
   font-size: 0.9rem;
+  cursor: pointer;
+  transition: background-color 0.3s;
 }
 
 .tag-filter button.active,
@@ -253,47 +304,13 @@ li {
   color: var(--fg);
 }
 
-/* ---- Responsive ---- */
-@media (max-width: 600px) {
-  .filters {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .date-filter label {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-/* ---- Spinner ---- */
-.spinner {
-  border: 4px solid var(--border);
-  border-top: 4px solid var(--highlight);
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  animation: spin 0.6s linear infinite;
-  display: inline-block;
-  margin-left: 10px;
-  vertical-align: middle;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
-}
-
 /* ---- Navigation Links ---- */
 .nav-link {
-  padding: 0.5rem 1rem;
+  padding: 0.75rem 1rem;
   text-decoration: none;
   color: var(--interactive);
-  border-radius: 8px;
+  border-radius: 12px;
+  font-size: 1rem;
   transition: background-color 0.2s;
 }
 
@@ -324,4 +341,17 @@ li {
 .admin-export button {
   margin-right: 1rem;
   margin-top: 0.5rem;
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 600px) {
+  .filters {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .date-filter label {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

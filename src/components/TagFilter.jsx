@@ -9,6 +9,7 @@ export default function TagFilter({ allTags, activeTag, setActiveTag }) {
       >
         All
       </button>
+
       {allTags.map((tag) => (
         <button
           key={tag}

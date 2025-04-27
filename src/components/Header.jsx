@@ -18,11 +18,12 @@ export default function Header() {
   };
 
   return (
-    <nav>
-      <div>
+    <nav className="header-nav">
+      <div className="logo">
         <strong>SkillTrack</strong>
       </div>
-      <div style={{ display: "flex", gap: "1rem", alignItems: "center" }}>
+
+      <div className="nav-links">
         <NavLink to="/goals" className="nav-link">
           Goals
         </NavLink>
@@ -40,14 +41,19 @@ export default function Header() {
             Admin
           </NavLink>
         )}
+      </div>
+
+      <div className="user-info">
         <span>
           Welcome, <strong>{username}</strong>
         </span>
-        <span className="log-footer">{email}</span>
-        <button onClick={toggleTheme}>
-          {theme === "dark" ? "☀️ Light Mode" : "🌙 Dark Mode"}
-        </button>
-        <button onClick={handleLogout}>Logout</button>
+        {email && <span className="input-footer">{email}</span>}
+        <div className="header-buttons">
+          <button onClick={toggleTheme}>
+            {theme === "dark" ? "☀️ Light" : "🌙 Dark"}
+          </button>
+          <button onClick={handleLogout}>Logout</button>
+        </div>
       </div>
     </nav>
   );

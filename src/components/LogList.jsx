@@ -29,7 +29,7 @@ export default function LogList({
   };
 
   if (logs.length === 0) {
-    return <p>No Learning logs available.</p>;
+    return <p>No learning logs available.</p>;
   }
 
   return (
@@ -46,11 +46,12 @@ export default function LogList({
         .map((log) => (
           <li key={log.id}>
             {editId === log.id ? (
-              <div className="log-edit" style={{ width: "100%" }}>
+              <div className="input-left">
                 <textarea
                   value={editContent}
                   onChange={(e) => setEditContent(e.target.value)}
                   rows={3}
+                  placeholder="Edit your learning..."
                 />
                 <input
                   type="text"
@@ -58,31 +59,40 @@ export default function LogList({
                   onChange={(e) => setEditTags(e.target.value)}
                   placeholder="Tags (comma separated)"
                 />
-                <div>
-                  <button onClick={saveEdit}>💾 Save</button>
-                  <button onClick={cancelEdit}>❌ Cancel</button>
+                <div className="input-buttons">
+                  <button onClick={saveEdit} title="Save">
+                    💾
+                  </button>
+                  <button onClick={cancelEdit} title="Cancel">
+                    ❌
+                  </button>
                 </div>
               </div>
             ) : (
               <>
-                <div className="log-left">
+                <div className="input-left">
                   {log.goalTitle && (
-                    <div className="log-main">
+                    <div className="input-first">
                       <span className="label">Goal:</span> {log.goalTitle}
                     </div>
                   )}
-                  <div className="log-main">
+                  <div className="input-second">
                     <span className="label">Content:</span> {log.content}
                   </div>
-                  <div className="log-tags">
+                  <div className="input-third">
                     <span className="label">Tags:</span> {log.tags || "—"}
                   </div>
-                  <div className="log-footer">
-                    {new Date(log.date).toLocaleString()}
+                  <div className="input-footer">
+                    {new Date(log.date).toLocaleDateString()}{" "}
+                    {new Date(log.date).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </div>
                 </div>
+
                 {!readOnly && (
-                  <div className="log-buttons">
+                  <div className="input-buttons">
                     <button onClick={() => startEdit(log)} title="Edit log">
                       ✏️
                     </button>

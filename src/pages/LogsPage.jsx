@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useKeycloak } from "@react-keycloak/web";
 import LogList from "../components/LogList";
+import TagFilter from "../components/TagFilter";
+import DateFilter from "../components/DateFilter";
 
 export default function LogsPage() {
   const { keycloak } = useKeycloak();
@@ -11,6 +13,10 @@ export default function LogsPage() {
   const [loadingExportLogs, setLoadingExportLogs] = useState(false);
   const [loadingExportSummaries, setLoadingExportSummaries] = useState(false);
 
+  const [activeTag, setActiveTag] = useState(null);
+  const [dateRange, setDateRange] = useState({ from: "", to: "" });
+  const [presetRange, setPresetRange] = useState("all");
+
   useEffect(() => {
     if (keycloak.authenticated && keycloak.token) {
       fetchLogs();
@@ -20,7 +26,7 @@ export default function LogsPage() {
   const fetchLogs = async () => {
     setLoadingLogs(true);
     try {
-      const res = await fetch("/api/logs?page=0&size=20", {
+      const res = await fetch("/api/logs?page=0&size=100", {
         headers: { Authorization: `Bearer ${keycloak.token}` },
       });
       if (!res.ok) throw new Error(await res.text());
@@ -58,13 +64,12 @@ export default function LogsPage() {
   const handleExportLogs = async (format = "json") => {
     setLoadingExportLogs(true);
     try {
-      const res = await fetch(`/logs/export?format=${format}`, {
+      const res = await fetch(`/api/logs/export?format=${format}`, {
         headers: { Authorization: `Bearer ${keycloak.token}` },
       });
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
       a.download = `learning_logs.${format}`;
@@ -80,13 +85,12 @@ export default function LogsPage() {
   const handleExportSummaries = async (format = "json") => {
     setLoadingExportSummaries(true);
     try {
-      const res = await fetch(`/summaries/export?format=${format}`, {
+      const res = await fetch(`/api/summaries/export?format=${format}`, {
         headers: { Authorization: `Bearer ${keycloak.token}` },
       });
       if (!res.ok) throw new Error(await res.text());
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
-
       const a = document.createElement("a");
       a.href = url;
       a.download = `summaries.${format}`;
@@ -98,6 +102,30 @@ export default function LogsPage() {
       setLoadingExportSummaries(false);
     }
   };
+
+  const uniqueTags = Array.from(
+    new Set(
+      logs.flatMap((log) =>
+        (log.tags || "")
+          .split(",")
+          .map((tag) => tag.trim())
+          .filter(Boolean)
+      )
+    )
+  );
+
+  const filteredLogs = logs.filter((log) => {
+    const matchesTag =
+      !activeTag ||
+      (log.tags || "")
+        .split(",")
+        .map((t) => t.trim())
+        .includes(activeTag);
+    const matchesDate =
+      (!dateRange.from || new Date(log.date) >= new Date(dateRange.from)) &&
+      (!dateRange.to || new Date(log.date) <= new Date(dateRange.to));
+    return matchesTag && matchesDate;
+  });
 
   return (
     <div className="container">
@@ -120,9 +148,27 @@ export default function LogsPage() {
         <button type="submit">Add Log</button>
       </form>
 
-      {loadingLogs ? <p>Loading logs...</p> : <LogList logs={logs} />}
+      <div className="filters">
+        <TagFilter
+          allTags={uniqueTags}
+          activeTag={activeTag}
+          setActiveTag={setActiveTag}
+        />
+        <DateFilter
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          presetRange={presetRange}
+          setPresetRange={setPresetRange}
+        />
+      </div>
 
-      <div className="admin-export" style={{ marginTop: "2rem" }}>
+      {loadingLogs ? (
+        <p>Loading logs...</p>
+      ) : (
+        <LogList logs={filteredLogs} activeTag={activeTag} />
+      )}
+
+      <div className="admin-export">
         <h3>Export My Data</h3>
 
         <button
