@@ -59,7 +59,7 @@ public class AdminController {
 			@RequestParam( required = false ) Integer size ) {
 		User user = userLookupService.getById( user_id );
 
-		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, user ) );
+		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, null, user ) );
 	}
 
 	@GetMapping( "/users/{user_id}/summaries" )
