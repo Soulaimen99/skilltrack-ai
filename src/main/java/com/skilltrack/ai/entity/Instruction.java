@@ -17,12 +17,12 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table( name = "learning_goal" )
+@Table( name = "instruction" )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LearningGoal {
+public class Instruction {
 
 	@Id
 	@GeneratedValue
@@ -32,11 +32,10 @@ public class LearningGoal {
 	@JoinColumn( name = "user_id" )
 	private User user;
 
-	private String title;
+	@Column( nullable = false, columnDefinition = "TEXT" )
+	private String advice;
 
-	private String description;
-
-	@Column( name = "created_at", nullable = false )
+	@Column( name = "created_at" )
 	private LocalDateTime createdAt;
 
 	@PrePersist

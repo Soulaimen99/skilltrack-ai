@@ -54,10 +54,11 @@ public class LearningLogController {
 	                                                                  @RequestParam( required = false ) String to,
 	                                                                  @RequestParam( defaultValue = "0" ) int page,
 	                                                                  @RequestParam( required = false ) Integer size,
+	                                                                  @RequestParam( required = false ) UUID goalId,
 	                                                                  Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
 
-		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, user ) );
+		return ResponseEntity.ok( learningLogService.getPagedLogsResponse( from, to, page, size, goalId, user ) );
 	}
 
 	@PostMapping

@@ -2,8 +2,11 @@ package com.skilltrack.ai.service;
 
 import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.dto.SummaryDto;
+import com.skilltrack.ai.entity.LearningGoal;
 import com.skilltrack.ai.entity.SummaryUsage;
 import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.repository.InstructionRepository;
+import com.skilltrack.ai.repository.LearningGoalRepository;
 import com.skilltrack.ai.repository.SummaryRepository;
 import com.skilltrack.ai.repository.SummaryUsageRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +29,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.any;
@@ -37,7 +41,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith( MockitoExtension.class )
-class SummaryTest {
+class ServicesTest {
 
 	@Mock
 	OpenAiChatModel chatModel;
@@ -51,13 +55,25 @@ class SummaryTest {
 	@Mock
 	SummaryUsageService summaryUsageService;
 
+	@Mock
+	InstructionRepository instructionRepository;
+
+	@Mock
+	LearningGoalRepository learningGoalRepository;
+
 	SummaryService summaryService;
+
+	InstructionService instructionService;
+
+	LearningGoalService learningGoalService;
 
 	User user;
 
 	@BeforeEach
 	void setUp() {
 		summaryService = new SummaryService( chatModel, summaryRepository, summaryUsageRepository, summaryUsageService );
+		instructionService = new InstructionService( chatModel, instructionRepository );
+		learningGoalService = new LearningGoalService( learningGoalRepository );
 		user = new User( UUID.randomUUID(), "tester", "test@example.com", null );
 		ReflectionTestUtils.setField( summaryService, "dailyLimit", 10 );
 	}
@@ -123,5 +139,67 @@ class SummaryTest {
 		assertEquals( "mocked summary", summaryDto.content() );
 		assertEquals( user.getUsername(), summaryDto.username() );
 		assertNotNull( summaryDto.createdAt() );
+	}
+
+	@Test
+	void testGenerateInstruction_success() {
+		when( chatModel.call( any( Prompt.class ) ) )
+				.thenReturn( new ChatResponse(
+						List.of( new Generation( new AssistantMessage( "Mocked advice" ) ) ),
+						new ChatResponseMetadata()
+				) );
+		when( instructionRepository.save( any() ) )
+				.thenAnswer( invocation -> invocation.getArgument( 0 ) );
+
+		var goal = new LearningGoal( UUID.randomUUID(), user, "Learn React", "Frontend goal", null );
+		var logs = List.of(
+				new LearningLogDto( null, user.getUsername(), "Studied hooks", "react", null, null, null )
+		);
+
+		var result = instructionService.generateInstruction( user, goal, logs );
+
+		assertNotNull( result );
+		assertEquals( user.getUsername(), result.username() );
+		assertEquals( "Mocked advice", result.advice() );
+	}
+
+	@Test
+	void testGetAllInstructions_emptyList() {
+		when( instructionRepository.findByUser( user ) ).thenReturn( List.of() );
+
+		var result = instructionService.getAllInstructions( user );
+
+		assertNotNull( result );
+		assertTrue( result.isEmpty() );
+	}
+
+	@Test
+	void testAddAndGetGoal_success() {
+		var goal = new com.skilltrack.ai.entity.LearningGoal( UUID.randomUUID(), user, "Learn Spring", "Backend goal", null );
+		when( learningGoalRepository.save( any() ) ).thenReturn( goal );
+
+		var saved = learningGoalService.addGoal( goal );
+
+		assertNotNull( saved );
+		assertEquals( "Learn Spring", saved.getTitle() );
+	}
+
+	@Test
+	void testDeleteGoal_success() {
+		var goal = new com.skilltrack.ai.entity.LearningGoal( UUID.randomUUID(), user, "Learn Python", "New goal", null );
+		when( learningGoalRepository.findById( goal.getId() ) ).thenReturn( Optional.of( goal ) );
+
+		var result = learningGoalService.deleteGoal( user, goal.getId() );
+
+		assertTrue( result );
+	}
+
+	@Test
+	void testDeleteGoal_notFound() {
+		when( learningGoalRepository.findById( any() ) ).thenReturn( Optional.empty() );
+
+		var result = learningGoalService.deleteGoal( user, UUID.randomUUID() );
+
+		assertFalse( result );
 	}
 }

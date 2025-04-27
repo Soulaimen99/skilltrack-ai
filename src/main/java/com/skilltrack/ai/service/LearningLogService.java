@@ -35,7 +35,7 @@ public class LearningLogService {
 		return logs.stream().map( LearningLogDto::from ).toList();
 	}
 
-	public LearningLogDto.PagedLogsResponse getPagedLogsResponse( String from, String to, int page, Integer size, User user ) {
+	public LearningLogDto.PagedLogsResponse getPagedLogsResponse( String from, String to, int page, Integer size, UUID goalId, User user ) {
 		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
 		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
 		Pageable pageable;
@@ -45,7 +45,7 @@ public class LearningLogService {
 		else {
 			pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
 		}
-		Page<LearningLog> logPage = getLogs( user, dtFrom, dtTo, pageable );
+		Page<LearningLog> logPage = getLogs( user, dtFrom, dtTo, goalId, pageable );
 		List<LearningLogDto> content = logPage.getContent().stream()
 				.map( LearningLogDto::from )
 				.toList();
@@ -53,12 +53,23 @@ public class LearningLogService {
 		return new LearningLogDto.PagedLogsResponse( content, logPage.getNumber(), logPage.getSize(), logPage.getTotalPages(), logPage.getTotalElements() );
 	}
 
-	public Page<LearningLog> getLogs( User user, LocalDateTime from, LocalDateTime to, Pageable pageable ) {
-		if ( from != null && to != null ) {
-			return learningLogRepository.findByUserAndCreatedAtBetween( user, from, to, pageable );
+	public Page<LearningLog> getLogs( User user, LocalDateTime from, LocalDateTime to, UUID goalId, Pageable pageable ) {
+		if ( goalId != null ) {
+			if ( from != null && to != null ) {
+				return learningLogRepository.findByUserAndGoalIdAndCreatedAtBetween( user, goalId, from, to, pageable );
+			}
+			else {
+				return learningLogRepository.findByUserAndGoalId( user, goalId, pageable );
+			}
 		}
-
-		return learningLogRepository.findByUser( user, pageable );
+		else {
+			if ( from != null && to != null ) {
+				return learningLogRepository.findByUserAndCreatedAtBetween( user, from, to, pageable );
+			}
+			else {
+				return learningLogRepository.findByUser( user, pageable );
+			}
+		}
 	}
 
 	public LearningLog addLog( LearningLog log ) {

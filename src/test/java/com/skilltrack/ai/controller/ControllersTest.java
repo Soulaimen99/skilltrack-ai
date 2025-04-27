@@ -1,8 +1,11 @@
 package com.skilltrack.ai.controller;
 
+import com.skilltrack.ai.dto.LearningGoalDto;
+import com.skilltrack.ai.dto.LearningInsightsDto;
 import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.service.LearningGoalService;
 import com.skilltrack.ai.service.LearningLogService;
 import com.skilltrack.ai.service.SummaryService;
 import com.skilltrack.ai.service.UserLookupService;
@@ -32,8 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles( "test" )
-@Import( IntegrationTest.MockedBeans.class )
-class IntegrationTest {
+@Import( ControllersTest.MockedBeans.class )
+class ControllersTest {
 
 	private final User testUser = new User( UUID.randomUUID(), "testuser", "test@example.com", null );
 
@@ -47,6 +50,9 @@ class IntegrationTest {
 	LearningLogService learningLogService;
 
 	@Autowired
+	LearningGoalService learningGoalService;
+
+	@Autowired
 	SummaryService summaryService;
 
 	@BeforeEach
@@ -57,7 +63,7 @@ class IntegrationTest {
 
 	@Test
 	void testGetLogs() throws Exception {
-		when( learningLogService.getPagedLogsResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
+		when( learningLogService.getPagedLogsResponse( any(), any(), anyInt(), anyInt(), any(), any( User.class ) ) )
 				.thenReturn( new LearningLogDto.PagedLogsResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
 
 		mockMvc.perform( get( "/api/logs" )
@@ -70,7 +76,7 @@ class IntegrationTest {
 
 	@Test
 	void testAdminAccessWithRole() throws Exception {
-		when( learningLogService.getPagedLogsResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
+		when( learningLogService.getPagedLogsResponse( any(), any(), anyInt(), anyInt(), any(), any( User.class ) ) )
 				.thenReturn( new LearningLogDto.PagedLogsResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
 
 		mockMvc.perform( get( "/api/admin/users/" + testUser.getId() + "/logs" )
@@ -95,6 +101,34 @@ class IntegrationTest {
 				.andExpect( status().isOk() );
 	}
 
+	@Test
+	void testGetInsights() throws Exception {
+		when( learningLogService.getInsights( any( User.class ) ) )
+				.thenReturn( new LearningInsightsDto( 0, 0, null, 0 ) );
+
+		mockMvc.perform( get( "/api/logs/insights" )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "testuser" )
+										.claim( "email", "test@example.com" ) )
+								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) )
+				)
+				.andExpect( status().isOk() );
+	}
+
+	@Test
+	void testGetGoals() throws Exception {
+		when( learningGoalService.getPagedGoalsResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
+				.thenReturn( new LearningGoalDto.PagedGoalsResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
+
+		mockMvc.perform( get( "/api/goals" )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "testuser" )
+										.claim( "email", "test@example.com" ) )
+								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) )
+				)
+				.andExpect( status().isOk() );
+	}
+
 	@TestConfiguration
 	static class MockedBeans {
 
@@ -111,6 +145,11 @@ class IntegrationTest {
 		@Bean
 		SummaryService summaryService() {
 			return Mockito.mock( SummaryService.class );
+		}
+
+		@Bean
+		LearningGoalService learningGoalService() {
+			return Mockito.mock( LearningGoalService.class );
 		}
 	}
 }

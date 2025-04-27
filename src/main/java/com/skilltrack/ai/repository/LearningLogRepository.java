@@ -15,10 +15,14 @@ import java.util.UUID;
 public interface LearningLogRepository extends JpaRepository<LearningLog, UUID> {
 
 	List<LearningLog> findByUser( User user );
-	
+
 	Page<LearningLog> findByUser( User user, Pageable pageable );
 
 	Page<LearningLog> findByUserAndCreatedAtBetween( User user, LocalDateTime from, LocalDateTime to, Pageable pageable );
+
+	Page<LearningLog> findByUserAndGoalId( User user, UUID goalId, Pageable pageable );
+
+	Page<LearningLog> findByUserAndGoalIdAndCreatedAtBetween( User user, UUID goalId, LocalDateTime from, LocalDateTime to, Pageable pageable );
 
 	List<LearningLog> findByUserAndCreatedAtAfter( User user, LocalDateTime after );
 

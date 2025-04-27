@@ -14,7 +14,7 @@ public record LearningGoalDto( UUID id, String username, String title, String de
 	}
 
 	public LearningGoal toEntity( User user ) {
-		return new LearningGoal( null, user, user.getUsername(), this.title, this.description, null );
+		return new LearningGoal( null, user, this.title, this.description, null );
 	}
 
 	public record PagedGoalsResponse(
