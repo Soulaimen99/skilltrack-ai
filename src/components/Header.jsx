@@ -36,6 +36,9 @@ export default function Header() {
         <NavLink to="/progress" className="nav-link">
           Progress
         </NavLink>
+        <NavLink to="/quizzes" className="nav-link">
+          Quizzes
+        </NavLink>
         {isAdmin && (
           <NavLink to="/admin" className="nav-link">
             Admin

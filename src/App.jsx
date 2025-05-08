@@ -6,6 +6,9 @@ import InstructionsPage from "./pages/InstructionsPage";
 import LogsPage from "./pages/LogsPage";
 import ProgressPage from "./pages/ProgressPage";
 import AdminPanelPage from "./pages/AdminPanelPage";
+import QuizzesPage from "./pages/QuizzesPage";
+import QuizPage from "./pages/QuizPage";
+import NewQuizPage from "./pages/NewQuizPage";
 import "./index.css";
 
 export default function App() {
@@ -27,6 +30,9 @@ export default function App() {
           <Route path="/instructions" element={<InstructionsPage />} />
           <Route path="/logs" element={<LogsPage />} />
           <Route path="/progress" element={<ProgressPage />} />
+          <Route path="/quizzes" element={<QuizzesPage />} />
+          <Route path="/quizzes/new" element={<NewQuizPage />} />
+          <Route path="/quizzes/:quizId" element={<QuizPage />} />
           {isAdmin && <Route path="/admin" element={<AdminPanelPage />} />}
           <Route path="*" element={<Navigate to="/goals" />} />
         </Routes>

@@ -1,17 +1,17 @@
 # SkillTrack-UI (Frontend)
 
-React frontend for SkillTrack-AI — a clean, responsive learning log tracker with summaries powered by OpenAI and authentication via Keycloak.
+React frontend for SkillTrack — a clean, responsive learning management system with logs, goals, quizzes, and AI-powered features including summaries and coaching advice. Secured with Keycloak authentication.
 
 ---
 
 ## 🛠 Tech Stack
 
-- React + Vite
+- React 18 + Vite
 - Keycloak.js + @react-keycloak/web
-- React Router
-- Fetch API
+- React Router for navigation
+- Custom hooks for data fetching, pagination, and theme management
 - Custom dark/light theme (CSS variables)
-- Minimal CSS (no UI framework)
+- Responsive CSS with no external UI framework
 
 ---
 
@@ -41,7 +41,11 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 
 ### 🧑‍🎓 User Features
 - ✅ Add, edit, and delete learning logs
+- ✅ Create and manage learning goals
 - ✅ Generate summaries from logs (OpenAI-powered)
+- ✅ Get AI coaching advice for learning goals
+- ✅ Create and take quizzes for learning goals
+- ✅ Track quiz scores and performance
 - ✅ Rate-limited summaries with usage tracking
 - ✅ Filter logs by date range or tag
 - ✅ View your summary history
@@ -58,12 +62,26 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 - 📚 Filter and browse user logs by date/tag
 - 🧠 View user-specific summaries
 - 🔒 Read-only mode (no edit/delete)
+- 📊 Export user data for analysis
+
+### 🧩 Components
+- **Core Components**: Header, ErrorMessage, LoadingSpinner, Pagination
+- **Learning Management**: GoalsPage, LogsPage, ProgressPage
+- **AI Features**: InstructionsPage, SummaryList
+- **Quiz System**: QuizList, QuizForm, QuizQuestion, QuizPage, NewQuizPage
+- **Admin Tools**: AdminPanelPage with user management
+
+### 🪝 Custom Hooks
+- **useFetch**: Authenticated API requests with error handling
+- **usePagination**: Pagination logic and navigation
+- **useTheme**: Theme switching with system preference detection
+- **useLocalStorage**: State persistence in localStorage
 
 ### ✨ UI/UX Enhancements
 - 🎨 Clean, responsive layout
 - 🌗 Theme toggle (with `localStorage` persistence)
 - 🏷 AI-generated tags (coming soon)
-- 📊 Dashboard insights and activity widgets (in progress)
+- 📊 Dashboard insights and activity widgets
 
 ---
 
@@ -71,10 +89,11 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 
 ```js
 // vite.config.js
-server: {
-  proxy: {
-    '/logs': 'http://localhost:8081',
-    '/admin': 'http://localhost:8081',
+export default {
+  server: {
+    proxy: {
+      '/api': 'http://localhost:8081'
+    }
   }
 }
 ```

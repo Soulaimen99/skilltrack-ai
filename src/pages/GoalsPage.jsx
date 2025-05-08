@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useKeycloak } from "@react-keycloak/web";
+import { Link } from "react-router-dom";
 
 export default function GoalsPage() {
   const { keycloak } = useKeycloak();
@@ -78,6 +79,14 @@ export default function GoalsPage() {
                   minute: "2-digit",
                 })}
               </div>
+            </div>
+            <div className="goal-actions">
+              <Link to={`/quizzes/new?goalId=${goal.id}`} className="button">
+                Create Quiz
+              </Link>
+              <Link to={`/quizzes?goalId=${goal.id}`} className="button secondary">
+                View Quizzes
+              </Link>
             </div>
           </li>
         ))}
