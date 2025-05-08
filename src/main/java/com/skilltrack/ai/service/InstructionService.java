@@ -32,7 +32,7 @@ public class InstructionService {
 
 	public InstructionDto generateInstruction( User user, LearningGoal goal, List<LearningLogDto> logs ) {
 		String adviceText = generateAdvice( user.getUsername(), goal.getTitle(), LearningLogDto.toContentList( logs ) );
-		Instruction instruction = instructionRepository.save( new Instruction( null, user, adviceText, null ) );
+		Instruction instruction = instructionRepository.save( new Instruction( null, user, goal, adviceText, null ) );
 		return InstructionDto.from( instruction );
 	}
 

@@ -65,6 +65,9 @@ OPENAI_API_KEY=sk-xxxx...
 - ✅ Export logs/summaries as JSON or TXT
 - ✅ View user insights (log count, top tags, activity)
 - ✅ `/me` endpoint returns current user profile and quota
+- ✅ Generate AI-powered instructions for learning goals
+- ✅ Create and take quizzes for learning goals
+- ✅ Track quiz scores and performance
 
 ### 🛡 Admin Features
 
@@ -83,42 +86,75 @@ OPENAI_API_KEY=sk-xxxx...
 
 ## 🤖 AI Summarization
 
-- Uses `com.theokanning.openai.service.OpenAiService`
 - Summarizes learning logs using `gpt-3.5-turbo`
 - Prompt defined in `SummaryService.java`
 - Rate-limiting via custom usage tracking entity
 - Configurable via environment:
 
-```properties
-OPENAI_API_KEY=sk-...
-OPENAI_MODEL=gpt-3.5-turbo
-OPENAI_TEMPERATURE=0.7
-OPENAI_MAX_TOKENS=300
-```
-
 ---
 
 ## 🔁 REST Endpoints
 
+### 🔑 Authentication
+
+| Method | Path           | Description                        |
+|--------|----------------|------------------------------------|
+| GET    | `/api/auth/me` | Get current user profile and quota |
+
+### 🎯 Learning Goals
+
+| Method | Path              | Description                |
+|--------|-------------------|----------------------------|
+| GET    | `/api/goals`      | Get current user's goals   |
+| POST   | `/api/goals`      | Create a new learning goal |
+| PUT    | `/api/goals/{id}` | Update a learning goal     |
+| DELETE | `/api/goals/{id}` | Delete a learning goal     |
+
 ### ✏️ Learning Logs
 
-| Method | Path              | Description                  |
-|--------|-------------------|------------------------------|
-| GET    | `/logs`           | Get current user's logs      |
-| POST   | `/logs`           | Add a new learning log       |
-| PUT    | `/logs/{id}`      | Update a learning log        |
-| DELETE | `/logs/{id}`      | Delete a learning log        |
-| POST   | `/logs/summarize` | Generate a summary from logs |
-| GET    | `/logs/export`    | Export logs (json/txt)       |
+| Method | Path                 | Description             |
+|--------|----------------------|-------------------------|
+| GET    | `/api/logs`          | Get current user's logs |
+| POST   | `/api/logs`          | Add a new learning log  |
+| PUT    | `/api/logs/{id}`     | Update a learning log   |
+| DELETE | `/api/logs/{id}`     | Delete a learning log   |
+| GET    | `/api/logs/insights` | Get user insights       |
+| GET    | `/api/logs/export`   | Export logs (json/txt)  |
+
+### 📚 Instructions
+
+| Method | Path                | Description                     |
+|--------|---------------------|---------------------------------|
+| GET    | `/api/instructions` | Get current user's instructions |
+| POST   | `/api/instructions` | Generate a new instruction      |
+
+### 📊 Summaries
+
+| Method | Path                    | Description                  |
+|--------|-------------------------|------------------------------|
+| POST   | `/api/summaries`        | Generate a summary from logs |
+| GET    | `/api/summaries/export` | Export summaries (json/txt)  |
+
+### 📝 Quizzes
+
+| Method | Path                                                  | Description                     |
+|--------|-------------------------------------------------------|---------------------------------|
+| GET    | `/api/quizzes`                                        | Get current user's quizzes      |
+| GET    | `/api/quizzes/{quizId}`                               | Get a specific quiz             |
+| GET    | `/api/quizzes/goal/{goalId}`                          | Get quizzes for a learning goal |
+| POST   | `/api/quizzes/goal/{goalId}`                          | Create a new quiz for a goal    |
+| POST   | `/api/quizzes/{quizId}/questions`                     | Add a question to a quiz        |
+| POST   | `/api/quizzes/{quizId}/questions/{questionId}/answer` | Submit an answer                |
+| PUT    | `/api/quizzes/{quizId}/complete`                      | Complete a quiz and get results |
+| DELETE | `/api/quizzes/{quizId}`                               | Delete a quiz                   |
 
 ### 🧑‍💼 Admin Endpoints (Requires `admin` role)
 
-| Method | Path                          | Description                       |
-|--------|-------------------------------|-----------------------------------|
-| GET    | `/admin/users`                | List all users                    |
-| GET    | `/admin/users/{id}/logs`      | Get logs for a specific user      |
-| GET    | `/admin/users/{id}/summaries` | Get summaries for a specific user |
-| GET    | `/admin/users/{id}/insights`  | User activity insights            |
+| Method | Path                              | Description                       |
+|--------|-----------------------------------|-----------------------------------|
+| GET    | `/api/admin/users`                | List all users                    |
+| GET    | `/api/admin/users/{id}/logs`      | Get logs for a specific user      |
+| GET    | `/api/admin/users/{id}/summaries` | Get summaries for a specific user |
 
 ---
 

@@ -5,9 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -17,35 +18,35 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table( name = "instruction" )
+@Table( name = "quiz_answer" )
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Instruction {
+public class QuizAnswer {
 
 	@Id
 	@GeneratedValue
 	private UUID id;
 
-	@ManyToOne( optional = false )
-	@JoinColumn( name = "user_id" )
-	private User user;
+	@OneToOne
+	@JoinColumn( name = "quiz_question_id", nullable = false )
+	private QuizQuestion quizQuestion;
 
-	@ManyToOne( optional = false )
-	@JoinColumn( name = "goal_id" )
-	private LearningGoal learningGoal;
+	@NotNull
+	private String answer;
 
-	@Column( nullable = false, columnDefinition = "TEXT" )
-	private String advice;
+	private int score;
 
-	@Column( name = "created_at" )
-	private LocalDateTime createdAt;
+	private boolean correct;
+
+	@Column( name = "attempted_at", nullable = false )
+	private LocalDateTime attemptedAt;
 
 	@PrePersist
 	public void prePersist() {
-		if ( createdAt == null ) {
-			createdAt = LocalDateTime.now();
+		if ( attemptedAt == null ) {
+			attemptedAt = LocalDateTime.now();
 		}
 	}
 }

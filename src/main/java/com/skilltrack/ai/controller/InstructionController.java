@@ -38,14 +38,14 @@ public class InstructionController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<InstructionDto>> listInstructions( Authentication auth ) {
+	public ResponseEntity<List<InstructionDto>> readInstructions( Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
 		return ResponseEntity.ok( instructionService.getAllInstructions( user ) );
 	}
 
 
 	@PostMapping
-	public ResponseEntity<InstructionDto> generateInstruction( @RequestBody InstructionRequestDto request, Authentication auth ) {
+	public ResponseEntity<InstructionDto> createInstruction( @RequestBody InstructionRequestDto request, Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
 		LearningGoal goal = learningGoalService.getByIdForUser( user, request.goalId() );
 		return ResponseEntity.ok( instructionService.generateInstruction( user, goal, request.logs() ) );
