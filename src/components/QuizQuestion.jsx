@@ -23,11 +23,15 @@ export default function QuizQuestion({
   useEffect(() => {
     if (question?.type === "MCQ" && question.options) {
       try {
-        // Options might be stored as a JSON string or array
-        const parsedOptions = typeof question.options === 'string' 
-          ? JSON.parse(question.options) 
-          : question.options;
-        setOptions(Array.isArray(parsedOptions) ? parsedOptions : []);
+        // Options are stored as a semicolon-separated string
+        if (typeof question.options === 'string') {
+          const optionsArray = question.options.split(';').map(opt => opt.trim());
+          setOptions(optionsArray);
+        } else if (Array.isArray(question.options)) {
+          setOptions(question.options);
+        } else {
+          setOptions([]);
+        }
       } catch (e) {
         console.error("Error parsing question options:", e);
         setOptions([]);
