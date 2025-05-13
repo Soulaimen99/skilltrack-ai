@@ -7,6 +7,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.dto.SummaryDto;
 import com.skilltrack.ai.entity.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,16 +15,12 @@ import java.util.stream.Collectors;
 
 
 @Service
+@RequiredArgsConstructor
 public class ExportService {
 
 	private final LearningLogService learningLogService;
 
 	private final SummaryService summaryService;
-
-	public ExportService( LearningLogService learningLogService, SummaryService summaryService ) {
-		this.learningLogService = learningLogService;
-		this.summaryService = summaryService;
-	}
 
 	public String exportLogs( User user, String format ) {
 		List<LearningLogDto> logs = learningLogService.getAllLogs( user );

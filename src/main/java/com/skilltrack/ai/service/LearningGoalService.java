@@ -3,9 +3,9 @@ package com.skilltrack.ai.service;
 import com.skilltrack.ai.dto.LearningGoalDto;
 import com.skilltrack.ai.entity.LearningGoal;
 import com.skilltrack.ai.entity.User;
-import com.skilltrack.ai.exception.InvalidRequestException;
 import com.skilltrack.ai.exception.ResourceNotFoundException;
 import com.skilltrack.ai.repository.LearningGoalRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -20,17 +20,14 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class LearningGoalService {
 
 	private final LearningGoalRepository learningGoalRepository;
 
-	public LearningGoalService( LearningGoalRepository learningGoalRepository ) {
-		this.learningGoalRepository = learningGoalRepository;
-	}
-
 	public LearningGoal getByIdForUser( User user, UUID goalId ) {
 		LearningGoal goal = learningGoalRepository.findById( goalId )
-				.orElseThrow( () -> new ResourceNotFoundException("Goal", goalId) );
+				.orElseThrow( () -> new ResourceNotFoundException( "Goal", goalId ) );
 
 		if ( !goal.getUser().getId().equals( user.getId() ) ) {
 			throw new AccessDeniedException( "You cannot access this goal" );
