@@ -7,10 +7,14 @@ import com.skilltrack.ai.entity.LearningGoal;
 import com.skilltrack.ai.entity.Quiz;
 import com.skilltrack.ai.entity.QuizAnswer;
 import com.skilltrack.ai.entity.QuizQuestion;
+import com.skilltrack.ai.entity.QuizType;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.repository.QuizAnswerRepository;
 import com.skilltrack.ai.repository.QuizQuestionRepository;
 import com.skilltrack.ai.repository.QuizRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -24,10 +28,14 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Service
+@RequiredArgsConstructor
 public class QuizService {
 
 	private final QuizRepository quizRepository;
@@ -38,17 +46,7 @@ public class QuizService {
 
 	private final LearningGoalService learningGoalService;
 
-	public QuizService(
-			QuizRepository quizRepository,
-			QuizQuestionRepository quizQuestionRepository,
-			QuizAnswerRepository quizAnswerRepository,
-			LearningGoalService learningGoalService
-	) {
-		this.quizRepository = quizRepository;
-		this.quizQuestionRepository = quizQuestionRepository;
-		this.quizAnswerRepository = quizAnswerRepository;
-		this.learningGoalService = learningGoalService;
-	}
+	private final OpenAiChatModel chatModel;
 
 	@Transactional
 	public Quiz getByIdForUser( User user, UUID quizId ) {
@@ -125,7 +123,117 @@ public class QuizService {
 		quiz.setStartedAt( LocalDateTime.now() );
 
 		Quiz savedQuiz = quizRepository.save( quiz );
+
+		// Generate AI questions for the quiz
+		generateAIQuestions( savedQuiz, goal );
+
 		return QuizDto.from( savedQuiz );
+	}
+
+	/**
+	 * Generates quiz questions using AI based on the learning goal
+	 *
+	 * @param quiz The quiz to add questions to
+	 * @param goal The learning goal to generate questions about
+	 */
+	private void generateAIQuestions( Quiz quiz, LearningGoal goal ) {
+		// Create a prompt for the AI to generate questions
+		String promptText = String.format( """
+				You are an educational quiz generator. Create 3 quiz questions about the following learning goal:
+				
+				Title: %s
+				Description: %s
+				
+				For each question, provide:
+				1. The question text
+				2. The question type (MCQ for multiple choice, BOOLEAN for true/false, or TEXT for free text)
+				3. For MCQ questions, provide 4 options separated by semicolons
+				4. The correct answer
+				
+				Format your response exactly as follows for each question:
+				QUESTION: [question text]
+				TYPE: [MCQ/BOOLEAN/TEXT]
+				OPTIONS: [option1;option2;option3;option4] (only for MCQ)
+				ANSWER: [correct answer]
+				
+				Make sure the questions test understanding of the topic, not just memorization.
+				""", goal.getTitle(), goal.getDescription() );
+
+		// Call the OpenAI API to generate questions
+		String aiResponse = chatModel.call( new Prompt( promptText ) ).getResult().getOutput().getText();
+
+		// Parse the AI response to extract questions
+		List<QuizQuestion> questions = parseAIResponse( aiResponse, quiz );
+
+		// Save the questions
+		for ( QuizQuestion question : questions ) {
+			quizQuestionRepository.save( question );
+		}
+	}
+
+	/**
+	 * Parses the AI response to extract quiz questions
+	 *
+	 * @param aiResponse The AI response text
+	 * @param quiz       The quiz to associate the questions with
+	 * @return A list of QuizQuestion entities
+	 */
+	private List<QuizQuestion> parseAIResponse( String aiResponse, Quiz quiz ) {
+		List<QuizQuestion> questions = new ArrayList<>();
+
+		// Define patterns to extract question components
+		Pattern questionPattern = Pattern.compile( "QUESTION:\\s*(.+?)\\s*(?=TYPE:|$)", Pattern.DOTALL );
+		Pattern typePattern = Pattern.compile( "TYPE:\\s*(\\w+)\\s*", Pattern.DOTALL );
+		Pattern optionsPattern = Pattern.compile( "OPTIONS:\\s*(.+?)\\s*(?=ANSWER:|$)", Pattern.DOTALL );
+		Pattern answerPattern = Pattern.compile( "ANSWER:\\s*(.+?)\\s*(?=QUESTION:|$)", Pattern.DOTALL );
+
+		// Split the response by "QUESTION:" to get individual question blocks
+		String[] questionBlocks = aiResponse.split( "(?=QUESTION:)" );
+
+		for ( String block : questionBlocks ) {
+			if ( block.trim().isEmpty() || !block.contains( "QUESTION:" ) ) {
+				continue;
+			}
+
+			// Extract question components
+			Matcher questionMatcher = questionPattern.matcher( block );
+			Matcher typeMatcher = typePattern.matcher( block );
+			Matcher optionsMatcher = optionsPattern.matcher( block );
+			Matcher answerMatcher = answerPattern.matcher( block );
+
+			if ( questionMatcher.find() && typeMatcher.find() && answerMatcher.find() ) {
+				String questionText = questionMatcher.group( 1 ).trim();
+				String typeStr = typeMatcher.group( 1 ).trim();
+				String answer = answerMatcher.group( 1 ).trim();
+
+				// Create a new question entity
+				QuizQuestion question = new QuizQuestion();
+				question.setQuiz( quiz );
+				question.setQuestion( questionText );
+				question.setCorrectAnswer( answer );
+				question.setScore( 10 ); // Default score
+
+				// Set the question type
+				try {
+					QuizType type = QuizType.valueOf( typeStr );
+					question.setType( type );
+
+					// Handle options for MCQ questions
+					if ( type == QuizType.MCQ && optionsMatcher.find() ) {
+						String optionsStr = optionsMatcher.group( 1 ).trim();
+						question.setOptions( optionsStr );
+					}
+				}
+				catch ( IllegalArgumentException e ) {
+					// Default to TEXT if type is invalid
+					question.setType( QuizType.TEXT );
+				}
+
+				questions.add( question );
+			}
+		}
+
+		return questions;
 	}
 
 	@Transactional

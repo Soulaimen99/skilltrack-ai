@@ -6,6 +6,7 @@ import com.skilltrack.ai.entity.LearningLog;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.exception.ResourceNotFoundException;
 import com.skilltrack.ai.repository.LearningLogRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,13 +24,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class LearningLogService {
 
 	private final LearningLogRepository learningLogRepository;
-
-	public LearningLogService( LearningLogRepository learningLogRepository ) {
-		this.learningLogRepository = learningLogRepository;
-	}
 
 	public List<LearningLogDto> getAllLogs( User user ) {
 		List<LearningLog> logs = learningLogRepository.findByUser( user );

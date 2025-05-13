@@ -6,6 +6,7 @@ import com.skilltrack.ai.entity.Instruction;
 import com.skilltrack.ai.entity.LearningGoal;
 import com.skilltrack.ai.entity.User;
 import com.skilltrack.ai.repository.InstructionRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.stereotype.Service;
@@ -14,16 +15,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class InstructionService {
 
 	private final OpenAiChatModel chatModel;
 
 	private final InstructionRepository instructionRepository;
-
-	public InstructionService( OpenAiChatModel chatModel, InstructionRepository instructionRepository ) {
-		this.chatModel = chatModel;
-		this.instructionRepository = instructionRepository;
-	}
 
 	public List<InstructionDto> getAllInstructions( User user ) {
 		List<Instruction> instructions = instructionRepository.findByUser( user );
