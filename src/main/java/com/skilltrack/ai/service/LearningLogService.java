@@ -4,6 +4,7 @@ import com.skilltrack.ai.dto.LearningInsightsDto;
 import com.skilltrack.ai.dto.LearningLogDto;
 import com.skilltrack.ai.entity.LearningLog;
 import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.exception.ResourceNotFoundException;
 import com.skilltrack.ai.repository.LearningLogRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -78,7 +79,7 @@ public class LearningLogService {
 
 	public LearningLog editLog( UUID id, LearningLog log ) {
 		LearningLog existingLog = learningLogRepository.findById( id ).orElseThrow(
-				() -> new IllegalArgumentException( "Log with id " + id + " does not exist" )
+				() -> new ResourceNotFoundException( "Log", id )
 		);
 		existingLog.setContent( log.getContent() );
 		existingLog.setTags( log.getTags() );

@@ -10,6 +10,7 @@ import com.skilltrack.ai.service.LearningGoalService;
 import com.skilltrack.ai.service.LearningLogService;
 import com.skilltrack.ai.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -32,6 +33,7 @@ import java.util.UUID;
 @RequestMapping( "/api/logs" )
 @SecurityRequirement( name = "bearerAuth" )
 @PreAuthorize( "hasRole( 'user' )" )
+@RequiredArgsConstructor
 public class LearningLogController {
 
 	private final LearningLogService learningLogService;
@@ -41,13 +43,6 @@ public class LearningLogController {
 	private final ExportService exportService;
 
 	private final LearningGoalService learningGoalService;
-
-	public LearningLogController( LearningLogService learningLogService, UserService userService, ExportService exportService, LearningGoalService learningGoalService ) {
-		this.learningLogService = learningLogService;
-		this.userService = userService;
-		this.exportService = exportService;
-		this.learningGoalService = learningGoalService;
-	}
 
 	@GetMapping
 	public ResponseEntity<LearningLogDto.PagedLogsResponse> readLogs( @RequestParam( required = false ) String from,

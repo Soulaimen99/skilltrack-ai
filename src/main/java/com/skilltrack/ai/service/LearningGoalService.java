@@ -3,15 +3,15 @@ package com.skilltrack.ai.service;
 import com.skilltrack.ai.dto.LearningGoalDto;
 import com.skilltrack.ai.entity.LearningGoal;
 import com.skilltrack.ai.entity.User;
+import com.skilltrack.ai.exception.InvalidRequestException;
+import com.skilltrack.ai.exception.ResourceNotFoundException;
 import com.skilltrack.ai.repository.LearningGoalRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,7 +30,7 @@ public class LearningGoalService {
 
 	public LearningGoal getByIdForUser( User user, UUID goalId ) {
 		LearningGoal goal = learningGoalRepository.findById( goalId )
-				.orElseThrow( () -> new ResponseStatusException( HttpStatus.NOT_FOUND, "Goal not found" ) );
+				.orElseThrow( () -> new ResourceNotFoundException("Goal", goalId) );
 
 		if ( !goal.getUser().getId().equals( user.getId() ) ) {
 			throw new AccessDeniedException( "You cannot access this goal" );
@@ -77,7 +77,7 @@ public class LearningGoalService {
 
 	public LearningGoal editGoal( UUID id, LearningGoal goal ) {
 		LearningGoal existingGoal = learningGoalRepository.findById( id ).orElseThrow(
-				() -> new IllegalArgumentException( "Goal with id " + id + " does not exist" )
+				() -> new ResourceNotFoundException( "Goal", id )
 		);
 		existingGoal.setTitle( goal.getTitle() );
 		existingGoal.setDescription( goal.getDescription() );
