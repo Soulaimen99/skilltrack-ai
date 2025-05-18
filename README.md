@@ -1,6 +1,8 @@
 # SkillTrack (Monorepo)
 
-**SkillTrack** is a full-stack AI-powered learning management system that helps users define learning goals, log progress, generate summaries, get coaching advice, and take quizzes — all secured with Keycloak authentication and built with modern technologies.
+**SkillTrack** is a full-stack AI-powered learning management system that helps users define learning goals, log
+progress, generate summaries, get coaching advice, and take quizzes — all secured with Keycloak authentication and built
+with modern technologies.
 
 ---
 
@@ -20,15 +22,18 @@
 ## 🛠 Tech Stack
 
 ### Backend
+
 - Java 21 + Spring Boot 3.4
 - Spring Security (OAuth2 Resource Server)
 - PostgreSQL (Docker)
+- Flyway (Database migrations)
 - OpenAI (via `openai-gpt3-java`)
 - H2 (test profile)
 - Maven
 - GitHub Actions (CI/CD)
 
 ### Frontend
+
 - React 18 + Vite
 - React Router
 - Keycloak.js + @react-keycloak/web
@@ -86,16 +91,18 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 ## 📁 Features
 
 ### 🧑‍🎓 User Features
-- ✅ Learning goals & progress tracking
+
+- ✅ Learning goals and progress tracking
 - ✅ Add/edit/delete learning logs
 - ✅ GPT-powered summaries
 - ✅ AI-generated instructions and coaching
 - ✅ Smart insights: top tags, activity, reminders
-- ✅ Quiz system: create, take, score quizzes
+- ✅ Quiz system: AI-generated quizzes, take, score quizzes
 - ✅ Light/dark theme with local storage
 - ✅ Export logs/summaries (JSON/TXT)
 
 ### 🛡 Admin Features
+
 - 🔍 View all users
 - 📚 Filter and view user logs/summaries
 - 🧠 User-specific insights
@@ -104,8 +111,6 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 ---
 
 ## 🔁 REST API Endpoints
-
-See [backend/README.md](backend/) for detailed API documentation, including:
 
 - `/api/auth/me`
 - `/api/logs`, `/api/summaries`, `/api/goals`, `/api/quizzes`, `/api/instructions`
@@ -128,11 +133,11 @@ See [backend/README.md](backend/) for detailed API documentation, including:
 ```js
 // vite.config.js
 export default {
-  server: {
-    proxy: {
-      '/api': 'http://localhost:8081'
-    }
-  }
+	server: {
+		proxy: {
+			'/api': 'http://localhost:8081'
+		}
+	}
 }
 ```
 

@@ -7,6 +7,8 @@ import com.skilltrack.backend.entity.User;
 import com.skilltrack.backend.exception.ResourceNotFoundException;
 import com.skilltrack.backend.repository.LearningLogRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class LearningLogService {
+
+	private static final Logger logger = LoggerFactory.getLogger( LearningLogService.class );
 
 	private final LearningLogRepository learningLogRepository;
 
@@ -72,24 +76,39 @@ public class LearningLogService {
 	}
 
 	public LearningLog addLog( LearningLog log ) {
-		return learningLogRepository.save( log );
+		logger.info( "Adding new learning log for user: {}", log.getUser().getId() );
+		LearningLog savedLog = learningLogRepository.save( log );
+		logger.info( "Successfully added learning log with ID: {}", savedLog.getId() );
+		return savedLog;
 	}
 
 	public LearningLog editLog( UUID id, LearningLog log ) {
-		LearningLog existingLog = learningLogRepository.findById( id ).orElseThrow(
-				() -> new ResourceNotFoundException( "Log", id )
-		);
+		logger.info( "Editing learning log with ID: {}", id );
+		LearningLog existingLog = learningLogRepository.findById( id )
+				.orElseThrow( () -> new ResourceNotFoundException( "Log", id ) );
 		existingLog.setContent( log.getContent() );
 		existingLog.setTags( log.getTags() );
 
-		return learningLogRepository.save( existingLog );
+		LearningLog updatedLog = learningLogRepository.save( existingLog );
+		logger.info( "Successfully updated learning log with ID: {}", id );
+		return updatedLog;
 	}
 
 	public boolean deleteLog( User user, UUID id ) {
-		return learningLogRepository.findById( id ).filter( log -> log.getUser().getId().equals( user.getId() ) ).map( l -> {
-			learningLogRepository.delete( l );
-			return true;
-		} ).orElse( false );
+		logger.info( "Attempting to delete learning log with ID: {} for user: {}", id, user.getId() );
+		boolean result = learningLogRepository.findById( id )
+				.filter( log -> log.getUser().getId().equals( user.getId() ) )
+				.map( l -> {
+					learningLogRepository.delete( l );
+					logger.info( "Successfully deleted learning log with ID: {}", id );
+					return true;
+				} )
+				.orElse( false );
+
+		if ( !result ) {
+			logger.warn( "Failed to delete learning log with ID: {} - log not found or user not authorized", id );
+		}
+		return result;
 	}
 
 	public LocalDate getLastLogDate( User user ) {
@@ -98,11 +117,13 @@ public class LearningLogService {
 	}
 
 	public LearningInsightsDto getInsights( User user ) {
+		logger.info( "Generating learning insights for user: {}", user.getId() );
 		LocalDateTime now = LocalDateTime.now();
 		LocalDateTime sevenDaysAgo = now.minusDays( 7 );
 		LocalDateTime thirtyDaysAgo = now.minusDays( 30 );
 
 		List<LearningLog> recentLogs = learningLogRepository.findByUserAndCreatedAtAfter( user, thirtyDaysAgo );
+		logger.debug( "Retrieved {} logs from the last 30 days for user: {}", recentLogs.size(), user.getId() );
 
 		int logsLast7 = ( int ) recentLogs.stream()
 				.filter( log -> log.getCreatedAt().isAfter( sevenDaysAgo ) )
@@ -123,6 +144,8 @@ public class LearningLogService {
 		LocalDate lastLogDate = getLastLogDate( user );
 		int daysSinceLast = lastLogDate != null ? Period.between( lastLogDate, LocalDate.now() ).getDays() : -1;
 
-		return new LearningInsightsDto( logsLast7, logsLast30, mostUsedTag, daysSinceLast );
+		LearningInsightsDto insights = new LearningInsightsDto( logsLast7, logsLast30, mostUsedTag, daysSinceLast );
+		logger.info( "Successfully generated learning insights for user: {}", user.getId() );
+		return insights;
 	}
 }

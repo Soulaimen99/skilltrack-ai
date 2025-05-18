@@ -31,6 +31,7 @@ export default function QuizPage() {
 
 	// Fetch quiz data
 	useEffect( () => {
+		console.log( "QuizPage - Component mounted or quizId changed:", quizId );
 		const fetchQuiz = async () => {
 			try {
 				const data = await get( `/api/quizzes/${quizId}` );
@@ -39,10 +40,12 @@ export default function QuizPage() {
 				// Find the first unanswered question
 				if ( data.questions && data.questions.length > 0 ) {
 					const firstUnansweredIndex = data.questions.findIndex( q => !q.answer );
-					setCurrentQuestionIndex( firstUnansweredIndex >= 0 ? firstUnansweredIndex : 0 );
+					const startIndex = firstUnansweredIndex >= 0 ? firstUnansweredIndex : 0;
+					setCurrentQuestionIndex( startIndex );
 				}
 			}
 			catch {
+				console.error( "QuizPage - Error fetching quiz data" );
 				// Error is handled by useFetch
 			}
 		};
@@ -56,6 +59,7 @@ export default function QuizPage() {
 	const handleSubmitAnswer = async ( answerData ) => {
 		if ( !quiz || submittingAnswer ) return;
 
+		console.log( "QuizPage - Submitting answer for question ID:", answerData.questionId, "Answer:", answerData.answer );
 		setSubmittingAnswer( true );
 		try {
 			const updatedQuiz = await post(
@@ -73,9 +77,13 @@ export default function QuizPage() {
 				if ( nextUnansweredIndex >= 0 ) {
 					setCurrentQuestionIndex( nextUnansweredIndex );
 				}
+				else {
+					console.log( "QuizPage - No more unanswered questions found" );
+				}
 			}
 		}
 		catch {
+			console.error( "QuizPage - Error submitting answer" );
 			// Error is handled by useFetch
 		}
 		finally {
@@ -87,12 +95,14 @@ export default function QuizPage() {
 	const handleCompleteQuiz = async () => {
 		if ( !quiz || completingQuiz ) return;
 
+		console.log( "QuizPage - Completing quiz with ID:", quizId );
 		setCompletingQuiz( true );
 		try {
 			const updatedQuiz = await put( `/api/quizzes/${quizId}/complete` );
 			setQuiz( updatedQuiz );
 		}
 		catch {
+			console.error( "QuizPage - Error completing quiz" );
 			// Error is handled by useFetch
 		}
 		finally {

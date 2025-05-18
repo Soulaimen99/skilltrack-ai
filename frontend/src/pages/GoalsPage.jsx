@@ -16,6 +16,7 @@ export default function GoalsPage() {
 	const [description, setDescription] = useState( "" );
 
 	useEffect( () => {
+		console.log( "GoalsPage - Component mounted or auth changed" );
 		if ( keycloak.authenticated ) {
 			fetchGoals();
 		}
@@ -23,6 +24,7 @@ export default function GoalsPage() {
 
 	const fetchGoals = async () => {
 		try {
+			console.log( "GoalsPage - Fetching goals from API" );
 			const res = await fetch( "/api/goals", {
 				headers: { Authorization: `Bearer ${keycloak.token}` },
 			} );
@@ -36,6 +38,7 @@ export default function GoalsPage() {
 
 	const handleCreateGoal = async ( e ) => {
 		e.preventDefault();
+		console.log( "GoalsPage - Creating new goal:", { title, description } );
 		try {
 			const res = await fetch( "/api/goals", {
 				method: "POST",

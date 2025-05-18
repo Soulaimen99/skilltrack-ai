@@ -17,15 +17,7 @@ public interface QuizRepository extends JpaRepository<Quiz, UUID> {
 
 	List<Quiz> findByLearningGoal( LearningGoal learningGoal );
 
-	List<Quiz> findByUserAndCompleted( User user, boolean completed );
-
-	List<Quiz> findByLearningGoalAndCompleted( LearningGoal learningGoal, boolean completed );
-
 	Page<Quiz> findByUser( User user, Pageable pageable );
-
-	Page<Quiz> findByLearningGoal( LearningGoal learningGoal, Pageable pageable );
-
-	Page<Quiz> findByUserAndStartedAtBetween( User user, LocalDateTime from, LocalDateTime to, Pageable pageable );
 
 	Page<Quiz> findByUserAndCompletedAndStartedAtBetween( User user, boolean completed, LocalDateTime from, LocalDateTime to, Pageable pageable );
 }

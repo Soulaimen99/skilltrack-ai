@@ -18,12 +18,14 @@ export default function ProgressPage() {
 	const [loading, setLoading] = useState( false );
 
 	useEffect( () => {
+		console.log( "ProgressPage - Component mounted or auth changed" );
 		if ( keycloak.authenticated && keycloak.token ) {
 			fetchInsights();
 		}
 	}, [keycloak.authenticated, keycloak.token] );
 
 	const fetchInsights = async () => {
+		console.log( "ProgressPage - Fetching insights from API" );
 		setLoading( true );
 		try {
 			const res = await fetch( "/api/logs/insights", {

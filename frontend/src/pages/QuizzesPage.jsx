@@ -25,6 +25,7 @@ export default function QuizzesPage() {
 
 	// Fetch quizzes when component mounts or filters change
 	useEffect( () => {
+		console.log( "QuizzesPage - Component mounted or filters changed" );
 		const fetchQuizzes = async () => {
 			try {
 				if ( goalId ) {
@@ -63,6 +64,7 @@ export default function QuizzesPage() {
 				}
 			}
 			catch {
+				console.error( "QuizzesPage - Error fetching quizzes" );
 				// Error is handled by useFetch
 			}
 		};
@@ -71,7 +73,9 @@ export default function QuizzesPage() {
 	}, [get, dateRange, showCompleted, goalId] );
 
 	const handleCreateQuiz = () => {
-		navigate( goalId ? `/quizzes/new?goalId=${goalId}` : "/quizzes/new" );
+		const path = goalId ? `/quizzes/new?goalId=${goalId}` : "/quizzes/new";
+		console.log( "QuizzesPage - Navigating to create quiz page:", path );
+		navigate( path );
 	};
 
 	return (
