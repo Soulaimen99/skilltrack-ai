@@ -35,7 +35,7 @@ jobs:
 
       # Verify Maven installation
       - name: Verify Maven version
-        run: ./mvnw -v
+        run: ./mvnw -f backend/pom.xml -v
 
       # Cache Maven dependencies
       - name: Cache Maven packages
@@ -48,7 +48,7 @@ jobs:
 
       # Run backend tests (using H2 + test profile)
       - name: Run backend tests
-        run: ./mvnw test -Dspring.profiles.active=test
+        run: ./mvnw -f backend/pom.xml test -Dspring.profiles.active=test
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
