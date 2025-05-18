@@ -1,5 +1,7 @@
+# .github/workflows/ci.yml
 name: CI
 
+# Trigger on push and PRs to the main branch
 on:
   push:
     branches: [ main ]
@@ -7,26 +9,36 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test:
+
+  # ===============================
+  # Backend (Spring Boot) Build & Test
+  # ===============================
+  backend:
+    name: Backend CI
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout repo contents
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Grant execute permission for Maven Wrapper
-        run: chmod +x ./mvnw
+      # Make Maven wrapper executable
+      - name: Grant execute permission to Maven wrapper
+        run: chmod +x ./backend/mvnw
 
-      - name: Verify Java setup
+      # Set up Java 21 (Temurin)
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: 21
 
+      # Verify Maven installation
       - name: Verify Maven version
-        run: ./mvnw -v
+        run: ./backend/mvnw -v
 
-      - name: Cache Maven dependencies
+      # Cache Maven dependencies
+      - name: Cache Maven packages
         uses: actions/cache@v3
         with:
           path: ~/.m2
@@ -34,7 +46,47 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven
 
-      - name: Run Tests (H2 test profile)
-        run: ./mvnw test -Dspring.profiles.active=test
+      # Run backend tests (using H2 + test profile)
+      - name: Run backend tests
+        run: ./backend/mvnw test -Dspring.profiles.active=test
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+
+  # ===============================
+  # Frontend (React + Vite) Build
+  # ===============================
+  frontend:
+    name: Frontend CI
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      # Checkout repo contents
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Node.js
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Cache node_modules
+      - name: Cache Node.js modules
+        uses: actions/cache@v3
+        with:
+          path: frontend/node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node
+
+      # Install frontend dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # Build the frontend (checks if it compiles correctly)
+      - name: Build frontend
+        run: npm run build
