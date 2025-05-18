@@ -1,12 +1,12 @@
-# SkillTrack (Monorepo)
+# SkillTrack AI
 
-**SkillTrack** is a full-stack AI-powered learning management system that helps users define learning goals, log
+**SkillTrack AI** is a full-stack AI-powered learning management system that helps users define learning goals, log
 progress, generate summaries, get coaching advice, and take quizzes — all secured with Keycloak authentication and built
 with modern technologies.
 
 ---
 
-## 🧱 Project Structure
+## Project Structure
 
 ```
 .
@@ -19,7 +19,7 @@ with modern technologies.
 
 ---
 
-## 🛠 Tech Stack
+## Tech Stack
 
 ### Backend
 
@@ -42,7 +42,7 @@ with modern technologies.
 
 ---
 
-## 🚀 Running the App Locally
+## Running the App Locally
 
 ### 1. Start PostgreSQL + Keycloak via Docker Compose
 
@@ -78,7 +78,7 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🔐 Keycloak Auth Setup
+## Keycloak Auth Setup
 
 - Realm: `skilltrack`
 - Backend Client: `skilltrack-client`
@@ -88,29 +88,29 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 📁 Features
+## Features
 
-### 🧑‍🎓 User Features
+### User Features
 
-- ✅ Learning goals and progress tracking
-- ✅ Add/edit/delete learning logs
-- ✅ GPT-powered summaries
-- ✅ AI-generated instructions and coaching
-- ✅ Smart insights: top tags, activity, reminders
-- ✅ Quiz system: AI-generated quizzes, take, score quizzes
-- ✅ Light/dark theme with local storage
-- ✅ Export logs/summaries (JSON/TXT)
+- Learning goals and progress tracking
+- Add/edit/delete learning logs
+- GPT-powered summaries
+- AI-generated instructions and coaching
+- Smart insights: top tags, activity, reminders
+- Quiz system: AI-generated quizzes, take, score quizzes
+- Light/dark theme with local storage
+- Export logs/summaries (JSON/TXT)
 
-### 🛡 Admin Features
+### Admin Features
 
-- 🔍 View all users
-- 📚 Filter and view user logs/summaries
-- 🧠 User-specific insights
-- 🔒 Read-only mode for admins
+- View all users
+- Filter and view user logs/summaries
+- User-specific insights
+- Read-only mode for admins
 
 ---
 
-## 🔁 REST API Endpoints
+## REST API Endpoints
 
 - `/api/auth/me`
 - `/api/logs`, `/api/summaries`, `/api/goals`, `/api/quizzes`, `/api/instructions`
@@ -118,7 +118,7 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## 🧪 Testing (Backend)
+## Testing (Backend)
 
 ```bash
 ./mvnw test -Dspring.profiles.active=test
@@ -128,21 +128,6 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 
 ---
 
-## ⚙️ Frontend Vite Proxy Config
-
-```js
-// vite.config.js
-export default {
-	server: {
-		proxy: {
-			'/api': 'http://localhost:8081'
-		}
-	}
-}
-```
-
----
-
-## 📄 License
+## License
 
 MIT © 2025 Soulaimen Choura
