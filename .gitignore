@@ -1,13 +1,28 @@
 # ====================
+# GLOBAL
+# ====================
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Environment secrets
+.env
+
+# ====================
 # BACKEND (Spring Boot)
 # ====================
 
-HELP.md
-target/
+# Build output
+/backend/target/
+
+# Maven Wrapper
 .mvn/
-!.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+!/.mvn/wrapper/
+!/.mvn/wrapper/maven-wrapper.jar
+!/.mvn/wrapper/maven-wrapper.properties
+/mvnw
+/mvnw.cmd
 
 # IntelliJ
 .idea/
@@ -18,36 +33,21 @@ target/
 # Eclipse / STS
 .apt_generated/
 .classpath
-.factorypath
+.factorypath/
 .project
 .settings/
 .springBeans/
 .sts4-cache/
 
 # NetBeans
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
-
-# VS Code
-.vscode/
-
-# Environment
-.env
-
-# Build
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
-
-# OS Files
-.DS_Store
-Thumbs.db
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
 
 # ====================
-# FRONTEND (React)
+# FRONTEND (React + Vite)
 # ====================
 
 # Logs
@@ -59,16 +59,29 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# Node modules
-node_modules/
-dist/
-dist-ssr/
+# Dependencies
+/frontend/node_modules/
 
-# Editor & project files
-.vscode/*
+# Build output
+/frontend/dist/
+/frontend/dist-ssr/
+
+# Editor configs
+.vscode/
 !.vscode/extensions.json
+
+# VS/Windows project files
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+
+# ====================
+# CI/CD & Build Tools
+# ====================
+
+# Local build/ci artifacts
+/target/
+build/
+coverage/
