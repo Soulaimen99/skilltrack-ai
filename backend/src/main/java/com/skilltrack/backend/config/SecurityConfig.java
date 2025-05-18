@@ -1,5 +1,7 @@
 package com.skilltrack.backend.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.lang.NonNull;
@@ -24,6 +26,8 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @EnableMethodSecurity
 public class SecurityConfig {
 
+	private static final Logger logger = LoggerFactory.getLogger( SecurityConfig.class );
+
 	private static final String[] SWAGGER_WHITELIST = {
 			"/swagger-ui.html",
 			"/swagger-ui/**",
@@ -34,6 +38,8 @@ public class SecurityConfig {
 
 	@Bean
 	public SecurityFilterChain securityFilterChain( HttpSecurity http ) throws Exception {
+		logger.info( "Configuring SecurityFilterChain with swagger whitelist and API protection" );
+
 		http
 				.cors( withDefaults() )
 				.csrf( AbstractHttpConfigurer::disable )
@@ -65,6 +71,7 @@ public class SecurityConfig {
 					.collect( Collectors.toList() );
 		} );
 
+		logger.debug( "Configured JwtAuthenticationConverter to extract granted authorities from JWT" );
 		return converter;
 	}
 

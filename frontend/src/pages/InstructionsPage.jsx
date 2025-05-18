@@ -19,6 +19,7 @@ export default function InstructionsPage() {
 	const [loadingInstructions, setLoadingInstructions] = useState( false );
 
 	useEffect( () => {
+		console.log( "InstructionsPage - Component mounted or auth changed" );
 		if ( keycloak.authenticated && keycloak.token ) {
 			fetchGoals();
 		}
@@ -26,11 +27,13 @@ export default function InstructionsPage() {
 
 	useEffect( () => {
 		if ( selectedGoalId ) {
+			console.log( "InstructionsPage - Goal selected, fetching logs for goal ID:", selectedGoalId );
 			fetchLogs( selectedGoalId );
 		}
 	}, [selectedGoalId] );
 
 	const fetchGoals = async () => {
+		console.log( "InstructionsPage - Fetching goals from API" );
 		try {
 			const res = await fetch( "/api/goals", {
 				headers: { Authorization: `Bearer ${keycloak.token}` },
@@ -45,6 +48,7 @@ export default function InstructionsPage() {
 	};
 
 	const fetchLogs = async ( goalId ) => {
+		console.log( "InstructionsPage - Fetching logs for goal ID:", goalId );
 		setLoadingLogs( true );
 		try {
 			const res = await fetch( `/api/logs?goalId=${goalId}`, {
@@ -64,6 +68,7 @@ export default function InstructionsPage() {
 
 	const handleGenerateInstructions = async () => {
 		if ( !selectedGoalId ) return;
+		console.log( "InstructionsPage - Generating instructions for goal ID:", selectedGoalId, "with", logs.length, "logs" );
 		setLoadingInstructions( true );
 		try {
 			const res = await fetch( "/api/instructions", {

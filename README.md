@@ -92,7 +92,7 @@ App runs at: [http://localhost:3000](http://localhost:3000)
 
 ### 🧑‍🎓 User Features
 
-- ✅ Learning goals & progress tracking
+- ✅ Learning goals and progress tracking
 - ✅ Add/edit/delete learning logs
 - ✅ GPT-powered summaries
 - ✅ AI-generated instructions and coaching

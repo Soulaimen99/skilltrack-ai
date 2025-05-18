@@ -1,5 +1,5 @@
-import { useKeycloak } from "@react-keycloak/web";
-import { Routes, Route, Navigate } from "react-router-dom";
+import {useKeycloak} from "@react-keycloak/web";
+import {Navigate, Route, Routes} from "react-router-dom";
 import Header from "./components/Header";
 import GoalsPage from "./pages/GoalsPage";
 import InstructionsPage from "./pages/InstructionsPage";
@@ -12,31 +12,39 @@ import NewQuizPage from "./pages/NewQuizPage";
 import "./index.css";
 
 export default function App() {
-  const { keycloak, initialized } = useKeycloak();
-  const isAdmin = keycloak?.tokenParsed?.realm_access?.roles?.includes("admin");
+	const { keycloak, initialized } = useKeycloak();
+	const isAdmin = keycloak?.tokenParsed?.realm_access?.roles?.includes( "admin" );
 
-  if (!initialized) return <p>Loading authentication...</p>;
-  if (!keycloak.authenticated) {
-    keycloak.login();
-    return null;
-  }
+	console.log( "App component - Authentication initialized:", initialized );
 
-  return (
-    <div className="container">
-      <Header />
-      <main>
-        <Routes>
-          <Route path="/goals" element={<GoalsPage />} />
-          <Route path="/instructions" element={<InstructionsPage />} />
-          <Route path="/logs" element={<LogsPage />} />
-          <Route path="/progress" element={<ProgressPage />} />
-          <Route path="/quizzes" element={<QuizzesPage />} />
-          <Route path="/quizzes/new" element={<NewQuizPage />} />
-          <Route path="/quizzes/:quizId" element={<QuizPage />} />
-          {isAdmin && <Route path="/admin" element={<AdminPanelPage />} />}
-          <Route path="*" element={<Navigate to="/goals" />} />
-        </Routes>
-      </main>
-    </div>
-  );
+	if ( !initialized ) return <p>Loading authentication...</p>;
+	if ( !keycloak.authenticated ) {
+		console.log( "User not authenticated, redirecting to login" );
+		keycloak.login();
+		return null;
+	}
+
+	console.log( "User authenticated, user info:", {
+		username: keycloak.tokenParsed?.preferred_username,
+		isAdmin: isAdmin
+	} );
+
+	return (
+		<div className="container">
+			<Header/>
+			<main>
+				<Routes>
+					<Route path="/goals" element={<GoalsPage/>}/>
+					<Route path="/instructions" element={<InstructionsPage/>}/>
+					<Route path="/logs" element={<LogsPage/>}/>
+					<Route path="/progress" element={<ProgressPage/>}/>
+					<Route path="/quizzes" element={<QuizzesPage/>}/>
+					<Route path="/quizzes/new" element={<NewQuizPage/>}/>
+					<Route path="/quizzes/:quizId" element={<QuizPage/>}/>
+					{isAdmin && <Route path="/admin" element={<AdminPanelPage/>}/>}
+					<Route path="*" element={<Navigate to="/goals"/>}/>
+				</Routes>
+			</main>
+		</div>
+	);
 }

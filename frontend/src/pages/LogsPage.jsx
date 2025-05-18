@@ -23,12 +23,14 @@ export default function LogsPage() {
 	const [presetRange, setPresetRange] = useState( "all" );
 
 	useEffect( () => {
+		console.log( "LogsPage - Component mounted or auth changed" );
 		if ( keycloak.authenticated && keycloak.token ) {
 			fetchLogs();
 		}
 	}, [keycloak.authenticated, keycloak.token] );
 
 	const fetchLogs = async () => {
+		console.log( "LogsPage - Fetching logs from API" );
 		setLoadingLogs( true );
 		try {
 			const res = await fetch( "/api/logs?page=0&size=100", {
@@ -48,6 +50,7 @@ export default function LogsPage() {
 
 	const handleAddLog = async ( e ) => {
 		e.preventDefault();
+		console.log( "LogsPage - Adding new log with tags:", tags );
 		try {
 			const logPayload = { content, tags };
 			const res = await fetch( "/api/logs", {
@@ -70,6 +73,7 @@ export default function LogsPage() {
 	};
 
 	const handleExportLogs = async ( format = "json" ) => {
+		console.log( "LogsPage - Exporting logs in format:", format );
 		setLoadingExportLogs( true );
 		try {
 			const res = await fetch( `/api/logs/export?format=${format}`, {
@@ -93,6 +97,7 @@ export default function LogsPage() {
 	};
 
 	const handleExportSummaries = async ( format = "json" ) => {
+		console.log( "LogsPage - Exporting summaries in format:", format );
 		setLoadingExportSummaries( true );
 		try {
 			const res = await fetch( `/api/summaries/export?format=${format}`, {
