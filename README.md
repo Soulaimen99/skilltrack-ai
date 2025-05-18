@@ -22,8 +22,7 @@ and authenticates via Keycloak. Built with PostgreSQL and ready for local develo
 1. **Start PostgreSQL and Keycloak via Docker Compose**
 
 ```bash
-docker compose -f postgres/docker-compose.yml up -d
-docker compose -f keycloak/docker-compose.yml up -d
+docker compose up -d
 ```
 
 2. **Set environment variables in `.env`**

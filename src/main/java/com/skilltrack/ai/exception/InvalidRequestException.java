@@ -9,28 +9,28 @@ import java.util.List;
 /**
  * Exception thrown when a request is invalid.
  */
-@ResponseStatus(HttpStatus.BAD_REQUEST)
+@ResponseStatus( HttpStatus.BAD_REQUEST )
 public class InvalidRequestException extends RuntimeException {
 
-    private final List<String> errors;
+	private final List<String> errors;
 
-    public InvalidRequestException(String message) {
-        super(message);
-        this.errors = new ArrayList<>();
-    }
+	public InvalidRequestException( String message ) {
+		super( message );
+		this.errors = new ArrayList<>();
+	}
 
-    public InvalidRequestException(String message, List<String> errors) {
-        super(message);
-        this.errors = errors;
-    }
+	public InvalidRequestException( String message, List<String> errors ) {
+		super( message );
+		this.errors = errors;
+	}
 
-    public InvalidRequestException(String message, String error) {
-        super(message);
-        this.errors = new ArrayList<>();
-        this.errors.add(error);
-    }
+	public InvalidRequestException( String message, String error ) {
+		super( message );
+		this.errors = new ArrayList<>();
+		this.errors.add( error );
+	}
 
-    public List<String> getErrors() {
-        return errors;
-    }
+	public List<String> getErrors() {
+		return errors;
+	}
 }
