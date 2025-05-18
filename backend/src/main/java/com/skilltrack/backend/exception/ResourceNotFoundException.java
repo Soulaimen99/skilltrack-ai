@@ -1,5 +1,7 @@
 package com.skilltrack.backend.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -9,15 +11,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus( HttpStatus.NOT_FOUND )
 public class ResourceNotFoundException extends RuntimeException {
 
-	public ResourceNotFoundException( String message ) {
-		super( message );
-	}
-
-	public ResourceNotFoundException( String resourceType, String identifier ) {
-		super( resourceType + " with identifier " + identifier + " not found" );
-	}
+	private static final Logger logger = LoggerFactory.getLogger( ResourceNotFoundException.class );
 
 	public ResourceNotFoundException( String resourceType, Object identifier ) {
 		super( resourceType + " with identifier " + identifier + " not found" );
+		logger.error( "{} with identifier {} not found", resourceType, identifier );
 	}
 }

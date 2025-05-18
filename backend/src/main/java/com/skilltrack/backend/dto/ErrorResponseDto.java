@@ -20,7 +20,4 @@ public record ErrorResponseDto(
 		List<String> details
 ) {
 
-	public ErrorResponseDto( String message, int status, String error, String path ) {
-		this( message, status, error, path, LocalDateTime.now(), null );
-	}
 }

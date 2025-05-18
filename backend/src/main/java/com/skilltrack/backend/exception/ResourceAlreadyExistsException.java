@@ -1,5 +1,7 @@
 package com.skilltrack.backend.exception;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -9,15 +11,10 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 @ResponseStatus( HttpStatus.CONFLICT )
 public class ResourceAlreadyExistsException extends RuntimeException {
 
-	public ResourceAlreadyExistsException( String message ) {
-		super( message );
-	}
-
-	public ResourceAlreadyExistsException( String resourceType, String identifier ) {
-		super( resourceType + " with identifier " + identifier + " already exists" );
-	}
+	private static final Logger logger = LoggerFactory.getLogger( ResourceAlreadyExistsException.class );
 
 	public ResourceAlreadyExistsException( String resourceType, Object identifier ) {
 		super( resourceType + " with identifier " + identifier + " already exists" );
+		logger.error( "{} with identifier {} already exists", resourceType, identifier );
 	}
 }

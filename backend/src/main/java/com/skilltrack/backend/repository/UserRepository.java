@@ -16,6 +16,7 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
 	@Modifying
 	@Transactional
+	// language=PostgreSQL
 	@Query( value = """
 			INSERT INTO app_user (id, username, email)
 			VALUES (:id, :username, :email)

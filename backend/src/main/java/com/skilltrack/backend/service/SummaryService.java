@@ -6,6 +6,8 @@ import com.skilltrack.backend.entity.Summary;
 import com.skilltrack.backend.entity.User;
 import com.skilltrack.backend.repository.SummaryRepository;
 import com.skilltrack.backend.repository.SummaryUsageRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +30,8 @@ import java.util.stream.Collectors;
 @Service
 public class SummaryService {
 
+	private static final Logger logger = LoggerFactory.getLogger( SummaryService.class );
+
 	private final OpenAiChatModel chatModel;
 
 	private final SummaryRepository summaryRepository;
@@ -48,42 +52,62 @@ public class SummaryService {
 
 	public List<SummaryDto> getAllSummaries( User user ) {
 		List<Summary> summaries = summaryRepository.findByUser( user );
+		logger.info( "Retrieved {} summaries for user: {}", summaries.size(), user.getId() );
 		return summaries.stream().map( SummaryDto::from ).toList();
 	}
 
 	public SummaryDto.PagedSummariesResponse getPagedSummariesResponse( String from, String to, int page, Integer size, User user ) {
+		logger.info( "Retrieving paged summaries with parameters: from={}, to={}, page={}, size={} for user: {}",
+				from, to, page, size, user.getId() );
+
 		LocalDateTime dtFrom = from != null ? LocalDate.parse( from ).atStartOfDay() : null;
 		LocalDateTime dtTo = to != null ? LocalDate.parse( to ).atTime( LocalTime.MAX ) : null;
+
 		Pageable pageable;
 		if ( size == null ) {
+			logger.debug( "Using unpaged pageable" );
 			pageable = Pageable.unpaged();
 		}
 		else {
+			logger.debug( "Using paged pageable with page: {} and size: {}", page, size );
 			pageable = PageRequest.of( page, size, Sort.by( "createdAt" ).descending() );
 		}
+
 		Page<Summary> summaryPage = getSummaries( user, dtFrom, dtTo, pageable );
 		List<SummaryDto> content = summaryPage.getContent().stream()
 				.map( SummaryDto::from )
 				.toList();
+
+		logger.info( "Retrieved {} summaries (page {} of {}) for user: {}",
+				summaryPage.getNumberOfElements(), summaryPage.getNumber() + 1, summaryPage.getTotalPages(), user.getId() );
 
 		return new SummaryDto.PagedSummariesResponse( content, summaryPage.getNumber(), summaryPage.getSize(), summaryPage.getTotalPages(), summaryPage.getTotalElements() );
 	}
 
 	public Page<Summary> getSummaries( User user, LocalDateTime from, LocalDateTime to, Pageable pageable ) {
 		if ( from != null && to != null ) {
+			logger.debug( "Using date range filter for summaries" );
 			return summaryRepository.findByUserAndCreatedAtBetween( user, from, to, pageable );
 		}
 
+		logger.debug( "Fetching summaries without date range filter" );
 		return summaryRepository.findByUser( user, pageable );
 	}
 
 	public SummaryDto summarizeWithLimitCheck( User user, List<LearningLogDto> logs ) {
+		logger.info( "Attempting to create summary for user: {} with {} logs", user.getId(), logs.size() );
+
 		if ( !allow( user ) ) {
+			logger.warn( "User: {} has exceeded daily summary limit", user.getId() );
 			throw new ResponseStatusException( HttpStatus.TOO_MANY_REQUESTS );
 		}
+
 		List<String> contents = LearningLogDto.toContentList( logs );
+
 		String summaryText = summarize( user.getUsername(), contents );
+
 		Summary saved = summaryRepository.save( new Summary( null, user, summaryText, LocalDateTime.now() ) );
+		logger.info( "Successfully created summary with ID: {} for user: {}", saved.getId(), user.getId() );
 
 		return SummaryDto.from( saved );
 	}
@@ -98,24 +122,37 @@ public class SummaryService {
 				%s
 				""", username, contents.stream().map( s -> "- " + s ).collect( Collectors.joining( "\n" ) ) );
 
-		return chatModel.call( new Prompt( promptText ) ).getResult().getOutput().getText();
+		String result = chatModel.call( new Prompt( promptText ) ).getResult().getOutput().getText();
+		logger.debug( "Successfully generated summary from AI model" );
+
+		return result;
 	}
 
 	public boolean allow( User user ) {
 		LocalDate today = LocalDate.now();
-		if ( summaryUsageRepository.tryIncrement( user, today, dailyLimit ) > 0 ) return true;
+
+		if ( summaryUsageRepository.tryIncrement( user, today, dailyLimit ) > 0 ) {
+			logger.debug( "User: {} has not exceeded daily limit, allowing summary creation", user.getId() );
+			return true;
+		}
+
 		try {
 			summaryUsageService.insertNewUsage( user );
+			logger.debug( "Successfully inserted new usage record, allowing summary creation" );
 			return true;
 		}
 		catch ( DataIntegrityViolationException e ) {
-			return summaryUsageRepository.tryIncrement( user, today, dailyLimit ) > 0;
+			boolean allowed = summaryUsageRepository.tryIncrement( user, today, dailyLimit ) > 0;
+			logger.debug( "User: {} is {} to create a summary after retry", user.getId(), allowed ? "allowed" : "not allowed" );
+			return allowed;
 		}
 	}
 
 	public int remaining( User user ) {
-		return summaryUsageRepository.findByUserAndUsageDate( user, LocalDate.now() )
+		int remaining = summaryUsageRepository.findByUserAndUsageDate( user, LocalDate.now() )
 				.map( u -> Math.max( 0, dailyLimit - u.getCount() ) )
 				.orElse( dailyLimit );
+		logger.debug( "User: {} has {} summaries remaining for today", user.getId(), remaining );
+		return remaining;
 	}
 }

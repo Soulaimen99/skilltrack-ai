@@ -1,8 +1,6 @@
 package com.skilltrack.backend.dto;
 
-import com.skilltrack.backend.entity.LearningGoal;
 import com.skilltrack.backend.entity.Quiz;
-import com.skilltrack.backend.entity.User;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,19 +38,6 @@ public record QuizDto(
 						? quiz.getQuizQuestions().stream().map( QuizQuestionDto::from ).toList()
 						: List.of()
 		);
-	}
-
-	public Quiz toEntity( User user, LearningGoal learningGoal ) {
-		Quiz quiz = new Quiz();
-		quiz.setUser( user );
-		quiz.setLearningGoal( learningGoal );
-		quiz.setScore( this.score );
-		quiz.setDuration( this.duration );
-		quiz.setFeedback( this.feedback );
-		quiz.setCompleted( this.completed );
-		quiz.setStartedAt( this.startedAt != null ? this.startedAt : LocalDateTime.now() );
-		quiz.setEndedAt( this.endedAt );
-		return quiz;
 	}
 
 	public record PagedQuizzesResponse(

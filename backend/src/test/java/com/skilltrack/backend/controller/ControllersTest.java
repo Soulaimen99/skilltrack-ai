@@ -38,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Import( ControllersTest.MockedBeans.class )
 class ControllersTest {
 
-	private final User testUser = new User( UUID.randomUUID(), "testuser", "test@example.com", null );
+	private final User testUser = new User( UUID.randomUUID(), "test_user", "test@example.com", null );
 
 	@Autowired
 	MockMvc mockMvc;
@@ -68,7 +68,7 @@ class ControllersTest {
 
 		mockMvc.perform( get( "/api/logs" )
 						.with( jwt().jwt( jwt -> jwt
-										.claim( "preferred_username", "testuser" )
+										.claim( "preferred_username", "test_user" )
 										.claim( "email", "test@example.com" ) )
 								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) ) )
 				.andExpect( status().isOk() );
@@ -108,7 +108,7 @@ class ControllersTest {
 
 		mockMvc.perform( get( "/api/logs/insights" )
 						.with( jwt().jwt( jwt -> jwt
-										.claim( "preferred_username", "testuser" )
+										.claim( "preferred_username", "test_user" )
 										.claim( "email", "test@example.com" ) )
 								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) )
 				)
@@ -122,7 +122,7 @@ class ControllersTest {
 
 		mockMvc.perform( get( "/api/goals" )
 						.with( jwt().jwt( jwt -> jwt
-										.claim( "preferred_username", "testuser" )
+										.claim( "preferred_username", "test_user" )
 										.claim( "email", "test@example.com" ) )
 								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) )
 				)

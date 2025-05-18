@@ -2,6 +2,8 @@ package com.skilltrack.backend.exception;
 
 import com.skilltrack.backend.dto.ErrorResponseDto;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,9 +21,13 @@ import java.time.LocalDateTime;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+	private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
 	@ExceptionHandler( ResponseStatusException.class )
 	public ResponseEntity<ErrorResponseDto> handleResponseStatusException(
 			ResponseStatusException ex, HttpServletRequest request ) {
+
+		logger.error("ResponseStatusException: {} - {}", ex.getStatusCode(), ex.getReason());
 
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( ex.getReason() )
@@ -38,6 +44,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponseDto> handleAccessDeniedException(
 			AccessDeniedException ex, HttpServletRequest request ) {
 
+		logger.error("Access denied: {} - {}", request.getRequestURI(), ex.getMessage());
+
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( "Access denied: " + ex.getMessage() )
 				.status( HttpStatus.FORBIDDEN.value() )
@@ -52,6 +60,8 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler( IllegalArgumentException.class )
 	public ResponseEntity<ErrorResponseDto> handleIllegalArgumentException(
 			IllegalArgumentException ex, HttpServletRequest request ) {
+
+		logger.error("Illegal argument: {} - {}", request.getRequestURI(), ex.getMessage());
 
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( ex.getMessage() )
@@ -68,6 +78,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponseDto> handleDataIntegrityViolationException(
 			DataIntegrityViolationException ex, HttpServletRequest request ) {
 
+		logger.error("Data integrity violation: {} - {}", request.getRequestURI(), ex.getMostSpecificCause().getMessage());
+
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( "Data integrity violation: " + ex.getMostSpecificCause().getMessage() )
 				.status( HttpStatus.CONFLICT.value() )
@@ -82,6 +94,9 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler( ResourceNotFoundException.class )
 	public ResponseEntity<ErrorResponseDto> handleResourceNotFoundException(
 			ResourceNotFoundException ex, HttpServletRequest request ) {
+
+		// Additional logging with request context
+		logger.debug("Resource not found: {} - {}", request.getRequestURI(), ex.getMessage());
 
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( ex.getMessage() )
@@ -98,6 +113,9 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponseDto> handleResourceAlreadyExistsException(
 			ResourceAlreadyExistsException ex, HttpServletRequest request ) {
 
+		// Additional logging with request context
+		logger.debug("Resource already exists: {} - {}", request.getRequestURI(), ex.getMessage());
+
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( ex.getMessage() )
 				.status( HttpStatus.CONFLICT.value() )
@@ -112,6 +130,9 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler( InvalidRequestException.class )
 	public ResponseEntity<ErrorResponseDto> handleInvalidRequestException(
 			InvalidRequestException ex, HttpServletRequest request ) {
+
+		// Additional logging with request context
+		logger.debug("Invalid request: {} - {} - Errors: {}", request.getRequestURI(), ex.getMessage(), ex.getErrors());
 
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( ex.getMessage() )
@@ -129,6 +150,8 @@ public class GlobalExceptionHandler {
 	public ResponseEntity<ErrorResponseDto> handleRuntimeException(
 			RuntimeException ex, HttpServletRequest request ) {
 
+		logger.error("Runtime exception: {} - {}", request.getRequestURI(), ex.getMessage(), ex);
+
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( ex.getMessage() )
 				.status( HttpStatus.INTERNAL_SERVER_ERROR.value() )
@@ -143,6 +166,8 @@ public class GlobalExceptionHandler {
 	@ExceptionHandler( Exception.class )
 	public ResponseEntity<ErrorResponseDto> handleGenericException(
 			Exception ex, HttpServletRequest request ) {
+
+		logger.error("Unexpected exception: {} - {}", request.getRequestURI(), ex.getMessage(), ex);
 
 		ErrorResponseDto errorResponse = ErrorResponseDto.builder()
 				.message( "An unexpected error occurred: " + ex.getMessage() )
