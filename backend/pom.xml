@@ -9,10 +9,10 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.skilltrack</groupId>
-    <artifactId>skilltrack-ai</artifactId>
+    <artifactId>backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ai</name>
-    <description>An AI-assisted learning log tracker.</description>
+    <name>SkillTrack Backend</name>
+    <description>Backend API for the SkillTrack AI learning platform.</description>
     <url/>
     <licenses>
         <license/>
