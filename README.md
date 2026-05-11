@@ -1,72 +1,66 @@
 # SkillTrack AI
 
-**SkillTrack AI** is a full-stack AI-powered learning management system that helps users define learning goals, log
-progress, generate summaries, get coaching advice, and take quizzes — all secured with Keycloak authentication and built
-with modern technologies.
-
----
+SkillTrack AI is a full-stack AI-powered learning platform for setting goals, tracking learning activity, generating coaching feedback, and taking quizzes. It uses Keycloak for authentication, Spring Boot for the backend, React for the frontend, PostgreSQL for persistence, and Spring AI for AI-powered features.
 
 ## Project Structure
 
-```
+```text
 .
-├── backend/       # Spring Boot API
-├── frontend/      # React UI (Vite)
-├── docker/        # PostgreSQL & Keycloak init scripts
-├── keycloak/      # Custom Keycloak theme
-├── docker-compose.yml
+|-- backend/        # Spring Boot API
+|-- frontend/       # React UI (Vite)
+|-- docker/         # PostgreSQL and Keycloak init scripts
+|-- keycloak/       # Custom Keycloak theme
+|-- .github/        # GitHub Actions CI
+`-- docker-compose.yml
 ```
-
----
 
 ## Tech Stack
 
 ### Backend
 
-- Java 21 + Spring Boot 3.4
-- Spring Security (OAuth2 Resource Server)
-- PostgreSQL (Docker)
-- Flyway (Database migrations)
-- OpenAI (via `openai-gpt3-java`)
-- H2 (test profile)
+- Java 21
+- Spring Boot 3.4
+- Spring Security OAuth2 Resource Server
+- Spring Data JPA
+- Flyway
+- PostgreSQL
+- H2 for tests
+- Spring AI for OpenAI integration
 - Maven
-- GitHub Actions (CI/CD)
 
 ### Frontend
 
-- React 18 + Vite
+- React 18
+- Vite
 - React Router
-- Keycloak.js + @react-keycloak/web
-- Custom hooks (auth, theme, fetch, pagination)
-- CSS Variables (dark/light mode)
+- Keycloak.js and `@react-keycloak/web`
+- Shared authenticated fetch hook
+- CSS variables for theme support
 
----
+## Running Locally
 
-## Running the App Locally
-
-### 1. Start PostgreSQL + Keycloak via Docker Compose
+### 1. Start infrastructure
 
 ```bash
 docker compose up -d
 ```
 
-> Make sure `.env` file is set with:
+Set the required environment variables in `.env` before starting the app:
 
 ```env
 POSTGRES_DB=skilltrack
 POSTGRES_USER=youruser
 POSTGRES_PASSWORD=yourpass
-OPENAI_API_KEY=sk-xxxx...
+OPENAI_API_KEY=sk-...
 ```
 
-### 2. Run the Backend
+### 2. Run the backend
 
 ```bash
-cd backend
-./mvnw spring-boot:run
+mvn -f backend/pom.xml spring-boot:run
 ```
 
-### 3. Run the Frontend
+### 3. Run the frontend
 
 ```bash
 cd frontend
@@ -74,60 +68,68 @@ npm install
 npm run dev
 ```
 
-App runs at: [http://localhost:3000](http://localhost:3000)
+The frontend runs at `http://localhost:3000`.
 
----
-
-## Keycloak Auth Setup
+## Keycloak Setup
 
 - Realm: `skilltrack`
-- Backend Client: `skilltrack-client`
-- Frontend Client: `skilltrack-frontend`
-- Roles: `user`, `admin`
-- JWT claims: `preferred_username`, `email`
-
----
+- Backend client: `skilltrack-client`
+- Frontend client: `skilltrack-frontend`
+- Admin role: `admin`
+- JWT claims used by the app: `preferred_username`, `email`
 
 ## Features
 
-### User Features
+### Learning Workflow
 
-- Learning goals and progress tracking
-- Add/edit/delete learning logs
-- GPT-powered summaries
-- AI-generated instructions and coaching
-- Smart insights: top tags, activity, reminders
-- Quiz system: AI-generated quizzes, take, score quizzes
-- Light/dark theme with local storage
-- Export logs/summaries (JSON/TXT)
+- Create, edit, and delete learning goals
+- View goal detail pages with linked logs, quizzes, and coaching history
+- Add, filter, edit, and export learning logs
+- View progress insights and activity trends
 
-### Admin Features
+### AI Features
 
-- View all users
-- Filter and view user logs/summaries
-- User-specific insights
-- Read-only mode for admins
+- Generate AI learning instructions from logs
+- Generate AI summaries from learning activity
+- Generate AI quizzes for a goal
+- Fallback handling for malformed quiz generation responses
+- Semantic grading for free-text quiz answers
 
----
+### UX Features
 
-## REST API Endpoints
+- Responsive dashboard-style layout
+- Light and dark themes
+- Shared authenticated API client
+- Loading, error, and empty states across major pages
 
-- `/api/auth/me`
-- `/api/logs`, `/api/summaries`, `/api/goals`, `/api/quizzes`, `/api/instructions`
-- `/api/admin/...`
+## REST API Overview
 
----
+- `GET /api/goals`
+- `GET /api/goals/{id}`
+- `POST /api/goals`
+- `GET /api/logs`
+- `GET /api/logs/insights`
+- `GET /api/logs/export`
+- `GET /api/summaries`
+- `GET /api/quizzes`
+- `GET /api/quizzes/goal/{goalId}`
+- `GET /api/quizzes/{quizId}`
+- `POST /api/instructions`
+- `GET /api/instructions`
+- `GET /api/admin/...`
 
-## Testing (Backend)
+## Testing
+
+Backend tests run against H2 with the test profile:
 
 ```bash
-./mvnw test -Dspring.profiles.active=test
+mvn -f backend/pom.xml test -Dspring.profiles.active=test
 ```
 
-> Uses H2 in-memory DB, Flyway disabled for test profile.
+## CI
 
----
+GitHub Actions runs backend tests with Maven and builds the frontend with Vite.
 
 ## License
 
-MIT © 2025 Soulaimen Choura
+MIT (c) 2025 Soulaimen Choura

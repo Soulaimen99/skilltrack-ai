@@ -13,8 +13,6 @@ export default function NewQuizPage() {
 	const queryParams = new URLSearchParams( location.search );
 	const goalId = queryParams.get( "goalId" );
 
-	console.log( "NewQuizPage - Component rendered with goalId:", goalId );
-
 	return (
 		<div className="container">
 			<QuizForm goalId={goalId}/>

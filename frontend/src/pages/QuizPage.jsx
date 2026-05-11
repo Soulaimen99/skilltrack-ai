@@ -31,7 +31,6 @@ export default function QuizPage() {
 
 	// Fetch quiz data
 	useEffect( () => {
-		console.log( "QuizPage - Component mounted or quizId changed:", quizId );
 		const fetchQuiz = async () => {
 			try {
 				const data = await get( `/api/quizzes/${quizId}` );
@@ -59,7 +58,6 @@ export default function QuizPage() {
 	const handleSubmitAnswer = async ( answerData ) => {
 		if ( !quiz || submittingAnswer ) return;
 
-		console.log( "QuizPage - Submitting answer for question ID:", answerData.questionId, "Answer:", answerData.answer );
 		setSubmittingAnswer( true );
 		try {
 			const updatedQuiz = await post(
@@ -77,9 +75,6 @@ export default function QuizPage() {
 				if ( nextUnansweredIndex >= 0 ) {
 					setCurrentQuestionIndex( nextUnansweredIndex );
 				}
-				else {
-					console.log( "QuizPage - No more unanswered questions found" );
-				}
 			}
 		}
 		catch {
@@ -95,7 +90,6 @@ export default function QuizPage() {
 	const handleCompleteQuiz = async () => {
 		if ( !quiz || completingQuiz ) return;
 
-		console.log( "QuizPage - Completing quiz with ID:", quizId );
 		setCompletingQuiz( true );
 		try {
 			const updatedQuiz = await put( `/api/quizzes/${quizId}/complete` );
@@ -120,6 +114,8 @@ export default function QuizPage() {
 	const answeredCount = quiz?.questions?.filter( q => q.answer ).length || 0;
 	const totalQuestions = quiz?.questions?.length || 0;
 	const progressPercentage = totalQuestions > 0 ? (answeredCount / totalQuestions) * 100 : 0;
+	const maxScore = quiz?.questions?.reduce( ( total, question ) => total + ( question.score || 0 ), 0 ) || 0;
+	const scorePercentage = maxScore > 0 ? Math.round( ( quiz.score / maxScore ) * 100 ) : 0;
 
 	if ( loading && !quiz ) {
 		return <LoadingSpinner label="Loading quiz..."/>;
@@ -146,10 +142,12 @@ export default function QuizPage() {
 			</div>
 
 			{quiz.completed ? (
-				<div className="quiz-completed">
+					<div className="quiz-completed">
 					<div className="quiz-summary">
 						<h3>Quiz Completed</h3>
-						<p className="quiz-score">Score: {quiz.score}</p>
+						<p className="quiz-score">
+							Score: {quiz.score} / {maxScore} ({scorePercentage}%)
+						</p>
 						<p className="quiz-feedback">{quiz.feedback}</p>
 						<p>
 							Completed on: {new Date( quiz.endedAt ).toLocaleString()}

@@ -2,6 +2,7 @@ import {useKeycloak} from "@react-keycloak/web";
 import {Navigate, Route, Routes} from "react-router-dom";
 import Header from "./components/Header";
 import GoalsPage from "./pages/GoalsPage";
+import GoalDetailPage from "./pages/GoalDetailPage";
 import InstructionsPage from "./pages/InstructionsPage";
 import LogsPage from "./pages/LogsPage";
 import ProgressPage from "./pages/ProgressPage";
@@ -15,19 +16,11 @@ export default function App() {
 	const { keycloak, initialized } = useKeycloak();
 	const isAdmin = keycloak?.tokenParsed?.realm_access?.roles?.includes( "admin" );
 
-	console.log( "App component - Authentication initialized:", initialized );
-
 	if ( !initialized ) return <p>Loading authentication...</p>;
 	if ( !keycloak.authenticated ) {
-		console.log( "User not authenticated, redirecting to login" );
 		keycloak.login();
 		return null;
 	}
-
-	console.log( "User authenticated, user info:", {
-		username: keycloak.tokenParsed?.preferred_username,
-		isAdmin: isAdmin
-	} );
 
 	return (
 		<div className="container">
@@ -35,6 +28,7 @@ export default function App() {
 			<main>
 				<Routes>
 					<Route path="/goals" element={<GoalsPage/>}/>
+					<Route path="/goals/:goalId" element={<GoalDetailPage/>}/>
 					<Route path="/instructions" element={<InstructionsPage/>}/>
 					<Route path="/logs" element={<LogsPage/>}/>
 					<Route path="/progress" element={<ProgressPage/>}/>

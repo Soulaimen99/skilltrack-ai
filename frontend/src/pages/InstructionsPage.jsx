@@ -50,7 +50,6 @@ export default function InstructionsPage() {
 
 	useEffect( () => {
 		if ( selectedGoalId ) {
-			console.log( "InstructionsPage - Goal selected, fetching logs for goal ID:", selectedGoalId );
 			fetchLogs( selectedGoalId );
 		}
 	}, [fetchLogs, selectedGoalId] );

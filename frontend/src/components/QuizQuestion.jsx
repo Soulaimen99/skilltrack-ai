@@ -140,7 +140,8 @@ export default function QuizQuestion( {
 							<strong>Your answer:</strong> {question.answer.answer}
 						</p>
 						<p>
-							<strong>Correct answer:</strong> {question.correctAnswer}
+							<strong>{question.type === "TEXT" ? "Reference answer" : "Correct answer"}:</strong>{" "}
+							{question.correctAnswer}
 						</p>
 						<p>
 							<strong>Result:</strong> {question.answer.correct ? "Correct" : "Incorrect"}
