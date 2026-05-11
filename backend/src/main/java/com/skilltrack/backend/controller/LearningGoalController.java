@@ -25,7 +25,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping( "/api/goals" )
 @SecurityRequirement( name = "bearerAuth" )
-@PreAuthorize( "hasRole( 'user' )" )
+@PreAuthorize( "isAuthenticated()" )
 public class LearningGoalController {
 
 	private final LearningGoalService learningGoalService;
@@ -48,13 +48,21 @@ public class LearningGoalController {
 		return ResponseEntity.ok( learningGoalService.getPagedGoalsResponse( from, to, page, size, user ) );
 	}
 
+	@GetMapping( "/{id}" )
+	public ResponseEntity<LearningGoalDto> readGoal( @PathVariable UUID id, Authentication auth ) {
+		User user = userService.getCurrentUser( auth );
+		LearningGoal goal = learningGoalService.getByIdForUser( user, id );
+
+		return ResponseEntity.ok( LearningGoalDto.from( goal ) );
+	}
+
 	@PostMapping
 	public ResponseEntity<LearningGoalDto> createGoal( @RequestBody LearningGoalDto goalDto, Authentication auth ) {
 		User user = userService.getCurrentUser( auth );
 		LearningGoal created = learningGoalService.addGoal( goalDto.toEntity( user ) );
 
 		return ResponseEntity.status( HttpStatus.CREATED )
-				.body( LearningGoalDto.from( learningGoalService.addGoal( created ) ) );
+				.body( LearningGoalDto.from( created ) );
 	}
 
 	@PutMapping( "/{id}" )

@@ -24,7 +24,7 @@ import java.util.List;
 @RestController
 @RequestMapping( "/api/summaries" )
 @SecurityRequirement( name = "bearerAuth" )
-@PreAuthorize( "hasRole( 'user' )" )
+@PreAuthorize( "isAuthenticated()" )
 public class SummaryController {
 
 	private final UserService userService;

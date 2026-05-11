@@ -27,8 +27,11 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -125,8 +128,71 @@ class ControllersTest {
 										.claim( "preferred_username", "test_user" )
 										.claim( "email", "test@example.com" ) )
 								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) )
-				)
+						)
 				.andExpect( status().isOk() );
+	}
+
+	@Test
+	void testGetGoals_withoutExplicitRole_shouldReturnOk() throws Exception {
+		when( learningGoalService.getPagedGoalsResponse( any(), any(), anyInt(), anyInt(), any( User.class ) ) )
+				.thenReturn( new LearningGoalDto.PagedGoalsResponse( Collections.emptyList(), 0, 10, 1, 0 ) );
+
+		mockMvc.perform( get( "/api/goals" )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "test_user" )
+										.claim( "email", "test@example.com" ) ) ) )
+				.andExpect( status().isOk() );
+	}
+
+	@Test
+	void testGetGoalById() throws Exception {
+		var goal = new com.skilltrack.backend.entity.LearningGoal( UUID.randomUUID(), testUser, "Learn Spring", "Backend goal", null );
+		when( learningGoalService.getByIdForUser( any( User.class ), any( UUID.class ) ) ).thenReturn( goal );
+
+		mockMvc.perform( get( "/api/goals/" + goal.getId() )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "test_user" )
+										.claim( "email", "test@example.com" ) )
+								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) ) )
+				.andExpect( status().isOk() );
+	}
+
+	@Test
+	void testCreateGoal_callsServiceOnce() throws Exception {
+		var goal = new com.skilltrack.backend.entity.LearningGoal( UUID.randomUUID(), testUser, "Learn Spring", "Backend goal", null );
+		when( learningGoalService.addGoal( any( com.skilltrack.backend.entity.LearningGoal.class ) ) ).thenReturn( goal );
+
+		mockMvc.perform( post( "/api/goals" )
+						.contentType( "application/json" )
+						.content( """
+								{"title":"Learn Spring","description":"Backend goal"}
+								""" )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "test_user" )
+										.claim( "email", "test@example.com" ) )
+								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) ) )
+				.andExpect( status().isCreated() );
+
+		verify( learningGoalService, times( 1 ) ).addGoal( any( com.skilltrack.backend.entity.LearningGoal.class ) );
+	}
+
+	@Test
+	void testCreateLog_callsServiceOnce() throws Exception {
+		var log = new com.skilltrack.backend.entity.LearningLog( UUID.randomUUID(), testUser, "Studied REST", "api", null, null );
+		when( learningLogService.addLog( any( com.skilltrack.backend.entity.LearningLog.class ) ) ).thenReturn( log );
+
+		mockMvc.perform( post( "/api/logs" )
+						.contentType( "application/json" )
+						.content( """
+								{"content":"Studied REST","tags":"api"}
+								""" )
+						.with( jwt().jwt( jwt -> jwt
+										.claim( "preferred_username", "test_user" )
+										.claim( "email", "test@example.com" ) )
+								.authorities( new SimpleGrantedAuthority( "ROLE_user" ) ) ) )
+				.andExpect( status().isCreated() );
+
+		verify( learningLogService, times( 1 ) ).addLog( any( com.skilltrack.backend.entity.LearningLog.class ) );
 	}
 
 	@TestConfiguration

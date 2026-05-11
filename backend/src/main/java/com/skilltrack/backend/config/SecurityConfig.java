@@ -16,8 +16,10 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static org.springframework.security.config.Customizer.withDefaults;
@@ -60,19 +62,40 @@ public class SecurityConfig {
 		JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
 
 		converter.setJwtGrantedAuthoritiesConverter( ( Jwt jwt ) -> {
-			Map<String, Object> realmAccess = jwt.getClaim( "realm_access" );
-			if ( realmAccess == null || !( realmAccess.get( "roles" ) instanceof List<?> roles ) ) {
-				return Collections.emptyList();
-			}
+			Set<String> roles = new LinkedHashSet<>();
+
+			addRolesFromClaim( roles, jwt.getClaim( "realm_access" ) );
+			addClientRolesFromClaim( roles, jwt.getClaim( "resource_access" ) );
 
 			return roles.stream()
-					.filter( role -> role instanceof String )
 					.map( role -> new SimpleGrantedAuthority( "ROLE_" + role ) )
 					.collect( Collectors.toList() );
 		} );
 
 		logger.debug( "Configured JwtAuthenticationConverter to extract granted authorities from JWT" );
 		return converter;
+	}
+
+	private void addRolesFromClaim( Set<String> roles, Object claim ) {
+		if ( !( claim instanceof Map<?, ?> access ) ) {
+			return;
+		}
+
+		Object rawRoles = access.get( "roles" );
+		if ( rawRoles instanceof List<?> list ) {
+			list.stream()
+					.filter( role -> role instanceof String )
+					.map( role -> ( String ) role )
+					.forEach( roles::add );
+		}
+	}
+
+	private void addClientRolesFromClaim( Set<String> roles, Object claim ) {
+		if ( !( claim instanceof Map<?, ?> resourceAccess ) ) {
+			return;
+		}
+
+		resourceAccess.values().forEach( clientAccess -> addRolesFromClaim( roles, clientAccess ) );
 	}
 
 	@Bean

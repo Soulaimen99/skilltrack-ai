@@ -77,7 +77,43 @@ export default function useFetch() {
 		( url, options = {} ) => fetchWithAuth( url, "DELETE", null, options ),
 		[fetchWithAuth]
 	);
-    
+
+	const downloadFile = useCallback(
+		async ( url, filename ) => {
+			setLoading( true );
+			setError( null );
+
+			try {
+				const response = await fetch( url, {
+					headers: {
+						Authorization: `Bearer ${keycloak.token}`,
+					},
+				} );
+
+				if ( !response.ok ) {
+					const errorText = await response.text();
+					throw new Error( errorText || `Error ${response.status}: ${response.statusText}` );
+				}
+
+				const blob = await response.blob();
+				const objectUrl = URL.createObjectURL( blob );
+				const anchor = document.createElement( "a" );
+				anchor.href = objectUrl;
+				anchor.download = filename;
+				anchor.click();
+				URL.revokeObjectURL( objectUrl );
+			}
+			catch ( err ) {
+				setError( err.message || "An unknown error occurred" );
+				throw err;
+			}
+			finally {
+				setLoading( false );
+			}
+		},
+		[keycloak]
+	);
+
 	const downloadData = useCallback( ( data, filename, format = "json" ) => {
 		const blob = new Blob( [JSON.stringify( data, null, 2 )], {
 			type: format === "json" ? "application/json" : "text/plain",
@@ -91,5 +127,5 @@ export default function useFetch() {
 		URL.revokeObjectURL( url );
 	}, [] );
 
-	return { get, post, put, del, loading, error, downloadData };
+	return { get, post, put, del, loading, error, downloadData, downloadFile };
 }

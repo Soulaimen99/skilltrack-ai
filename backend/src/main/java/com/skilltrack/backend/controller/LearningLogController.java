@@ -32,7 +32,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping( "/api/logs" )
 @SecurityRequirement( name = "bearerAuth" )
-@PreAuthorize( "hasRole( 'user' )" )
+@PreAuthorize( "isAuthenticated()" )
 @RequiredArgsConstructor
 public class LearningLogController {
 
@@ -66,7 +66,7 @@ public class LearningLogController {
 		LearningLog created = learningLogService.addLog( logDto.toEntity( user, goal ) );
 
 		return ResponseEntity.status( HttpStatus.CREATED )
-				.body( LearningLogDto.from( learningLogService.addLog( created ) ) );
+				.body( LearningLogDto.from( created ) );
 	}
 
 	@PutMapping( "/{id}" )

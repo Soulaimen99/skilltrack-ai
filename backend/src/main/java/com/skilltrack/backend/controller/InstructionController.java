@@ -22,7 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping( "/api/instructions" )
 @SecurityRequirement( name = "bearerAuth" )
-@PreAuthorize( "hasRole('user')" )
+@PreAuthorize( "isAuthenticated()" )
 public class InstructionController {
 
 	private final InstructionService instructionService;

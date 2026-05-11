@@ -27,7 +27,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping( "/api/quizzes" )
 @SecurityRequirement( name = "bearerAuth" )
-@PreAuthorize( "hasRole('user')" )
+@PreAuthorize( "isAuthenticated()" )
 public class QuizController {
 
 	private final QuizService quizService;

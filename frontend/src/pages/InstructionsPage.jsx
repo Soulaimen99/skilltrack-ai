@@ -1,6 +1,8 @@
-import {useEffect, useState} from "react";
-import {useKeycloak} from "@react-keycloak/web";
+import {useCallback, useEffect, useState} from "react";
 import LogList from "../components/LogList";
+import useFetch from "../hooks/useFetch";
+import ErrorMessage from "../components/ErrorMessage";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 /**
  * The `InstructionsPage` component provides an interface for users to select a learning goal and receive personalized AI coaching advice based on their activity logs.
@@ -10,7 +12,7 @@ import LogList from "../components/LogList";
  * @return {JSX.Element} A React functional component that renders the instructions page, including goal selection, log display, and instructions generation functionality.
  */
 export default function InstructionsPage() {
-	const { keycloak } = useKeycloak();
+	const { get, post, loading, error } = useFetch();
 	const [goals, setGoals] = useState( [] );
 	const [selectedGoalId, setSelectedGoalId] = useState( "" );
 	const [logs, setLogs] = useState( [] );
@@ -18,44 +20,20 @@ export default function InstructionsPage() {
 	const [instructions, setInstructions] = useState( "" );
 	const [loadingInstructions, setLoadingInstructions] = useState( false );
 
-	useEffect( () => {
-		console.log( "InstructionsPage - Component mounted or auth changed" );
-		if ( keycloak.authenticated && keycloak.token ) {
-			fetchGoals();
-		}
-	}, [keycloak.authenticated, keycloak.token] );
-
-	useEffect( () => {
-		if ( selectedGoalId ) {
-			console.log( "InstructionsPage - Goal selected, fetching logs for goal ID:", selectedGoalId );
-			fetchLogs( selectedGoalId );
-		}
-	}, [selectedGoalId] );
-
-	const fetchGoals = async () => {
-		console.log( "InstructionsPage - Fetching goals from API" );
+	const fetchGoals = useCallback( async () => {
 		try {
-			const res = await fetch( "/api/goals", {
-				headers: { Authorization: `Bearer ${keycloak.token}` },
-			} );
-			if ( !res.ok ) throw new Error( await res.text() );
-			const data = await res.json();
+			const data = await get( "/api/goals" );
 			setGoals( data.content || [] );
 		}
 		catch ( err ) {
 			console.error( "Failed to fetch goals", err );
 		}
-	};
+	}, [get] );
 
-	const fetchLogs = async ( goalId ) => {
-		console.log( "InstructionsPage - Fetching logs for goal ID:", goalId );
+	const fetchLogs = useCallback( async ( goalId ) => {
 		setLoadingLogs( true );
 		try {
-			const res = await fetch( `/api/logs?goalId=${goalId}`, {
-				headers: { Authorization: `Bearer ${keycloak.token}` },
-			} );
-			if ( !res.ok ) throw new Error( await res.text() );
-			const data = await res.json();
+			const data = await get( `/api/logs?goalId=${goalId}` );
 			setLogs( data.content || [] );
 		}
 		catch ( err ) {
@@ -64,26 +42,27 @@ export default function InstructionsPage() {
 		finally {
 			setLoadingLogs( false );
 		}
-	};
+	}, [get] );
+
+	useEffect( () => {
+		fetchGoals();
+	}, [fetchGoals] );
+
+	useEffect( () => {
+		if ( selectedGoalId ) {
+			console.log( "InstructionsPage - Goal selected, fetching logs for goal ID:", selectedGoalId );
+			fetchLogs( selectedGoalId );
+		}
+	}, [fetchLogs, selectedGoalId] );
 
 	const handleGenerateInstructions = async () => {
 		if ( !selectedGoalId ) return;
-		console.log( "InstructionsPage - Generating instructions for goal ID:", selectedGoalId, "with", logs.length, "logs" );
 		setLoadingInstructions( true );
 		try {
-			const res = await fetch( "/api/instructions", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${keycloak.token}`,
-				},
-				body: JSON.stringify( {
-					goalId: selectedGoalId,
-					logs: logs,
-				} ),
+			const instruction = await post( "/api/instructions", {
+				goalId: selectedGoalId,
+				logs: logs,
 			} );
-			if ( !res.ok ) throw new Error( await res.text() );
-			const instruction = await res.json();
 			setInstructions( instruction.advice || "No instructions available." );
 		}
 		catch ( err ) {
@@ -100,6 +79,8 @@ export default function InstructionsPage() {
 
 			<p>Select a learning goal to get personalized AI coaching advice.</p>
 
+			<ErrorMessage message={error}/>
+
 			<select
 				value={selectedGoalId}
 				onChange={( e ) => setSelectedGoalId( e.target.value )}
@@ -113,8 +94,10 @@ export default function InstructionsPage() {
 				) )}
 			</select>
 
+			{loading && !loadingLogs && <LoadingSpinner label="Loading goals..."/>}
+
 			{loadingLogs ? (
-				<p>Loading logs...</p>
+				<LoadingSpinner label="Loading logs..."/>
 			) : (
 				<>
 					<LogList logs={logs} readOnly={true}/>

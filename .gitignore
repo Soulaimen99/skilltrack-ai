@@ -7,7 +7,7 @@
 Thumbs.db
 
 # Environment secrets
-.env
+backend/.env
 
 # ====================
 # BACKEND (Spring Boot)
@@ -85,3 +85,8 @@ lerna-debug.log*
 /target/
 build/
 coverage/
+
+# AI
+AGENTS.md
+.aiassistant/
+

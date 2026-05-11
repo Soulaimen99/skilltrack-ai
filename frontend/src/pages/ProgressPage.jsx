@@ -1,5 +1,7 @@
-import {useEffect, useState} from "react";
-import {useKeycloak} from "@react-keycloak/web";
+import {useCallback, useEffect, useState} from "react";
+import useFetch from "../hooks/useFetch";
+import ErrorMessage from "../components/ErrorMessage";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 /**
  * Renders a progress tracking page for authenticated users. Displays insights
@@ -13,41 +15,30 @@ import {useKeycloak} from "@react-keycloak/web";
  * @return {JSX.Element} The rendered ProgressPage component.
  */
 export default function ProgressPage() {
-	const { keycloak } = useKeycloak();
+	const { get, loading, error } = useFetch();
 	const [insights, setInsights] = useState( null );
-	const [loading, setLoading] = useState( false );
 
-	useEffect( () => {
-		console.log( "ProgressPage - Component mounted or auth changed" );
-		if ( keycloak.authenticated && keycloak.token ) {
-			fetchInsights();
-		}
-	}, [keycloak.authenticated, keycloak.token] );
-
-	const fetchInsights = async () => {
-		console.log( "ProgressPage - Fetching insights from API" );
-		setLoading( true );
+	const fetchInsights = useCallback( async () => {
 		try {
-			const res = await fetch( "/api/logs/insights", {
-				headers: { Authorization: `Bearer ${keycloak.token}` },
-			} );
-			if ( !res.ok ) throw new Error( await res.text() );
-			const data = await res.json();
+			const data = await get( "/api/logs/insights" );
 			setInsights( data );
 		}
 		catch ( err ) {
 			console.error( "Failed to fetch insights", err );
 		}
-		finally {
-			setLoading( false );
-		}
-	};
+	}, [get] );
 
-	if ( loading ) return <p>Loading your progress...</p>;
+	useEffect( () => {
+		fetchInsights();
+	}, [fetchInsights] );
 
 	return (
 		<div className="container">
 			<h2>My Progress</h2>
+
+			<ErrorMessage message={error}/>
+
+			{loading && <LoadingSpinner label="Loading your progress..."/>}
 
 			{insights ? (
 				<div className="insights-and-export">

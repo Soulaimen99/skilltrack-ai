@@ -1,6 +1,8 @@
-import {useEffect, useState} from "react";
-import {useKeycloak} from "@react-keycloak/web";
+import {useCallback, useEffect, useState} from "react";
 import {Link} from "react-router-dom";
+import useFetch from "../hooks/useFetch";
+import ErrorMessage from "../components/ErrorMessage";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 /**
  * Renders a GoalsPage component that allows users to view, create, and manage their learning goals.
@@ -10,45 +12,29 @@ import {Link} from "react-router-dom";
  * @return {JSX.Element} A React component displaying the goals list and a form to create new goals.
  */
 export default function GoalsPage() {
-	const { keycloak } = useKeycloak();
+	const { get, post, loading, error } = useFetch();
 	const [goals, setGoals] = useState( [] );
 	const [title, setTitle] = useState( "" );
 	const [description, setDescription] = useState( "" );
 
-	useEffect( () => {
-		console.log( "GoalsPage - Component mounted or auth changed" );
-		if ( keycloak.authenticated ) {
-			fetchGoals();
-		}
-	}, [keycloak.authenticated] );
-
-	const fetchGoals = async () => {
+	const fetchGoals = useCallback( async () => {
 		try {
-			console.log( "GoalsPage - Fetching goals from API" );
-			const res = await fetch( "/api/goals", {
-				headers: { Authorization: `Bearer ${keycloak.token}` },
-			} );
-			const data = await res.json();
+			const data = await get( "/api/goals" );
 			setGoals( data.content || [] );
 		}
 		catch ( err ) {
 			console.error( "Failed to fetch goals", err );
 		}
-	};
+	}, [get] );
+
+	useEffect( () => {
+		fetchGoals();
+	}, [fetchGoals] );
 
 	const handleCreateGoal = async ( e ) => {
 		e.preventDefault();
-		console.log( "GoalsPage - Creating new goal:", { title, description } );
 		try {
-			const res = await fetch( "/api/goals", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${keycloak.token}`,
-				},
-				body: JSON.stringify( { title, description } ),
-			} );
-			if ( !res.ok ) throw new Error( await res.text() );
+			await post( "/api/goals", { title, description } );
 			await fetchGoals();
 			setTitle( "" );
 			setDescription( "" );
@@ -61,6 +47,10 @@ export default function GoalsPage() {
 	return (
 		<div className="container">
 			<h2>My Learning Goals</h2>
+
+			<ErrorMessage message={error}/>
+
+			{loading && <LoadingSpinner label="Loading goals..."/>}
 
 			<form onSubmit={handleCreateGoal}>
 				<input

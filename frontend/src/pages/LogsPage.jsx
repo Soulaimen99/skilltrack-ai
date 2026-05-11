@@ -1,8 +1,10 @@
-import {useEffect, useState} from "react";
-import {useKeycloak} from "@react-keycloak/web";
+import {useCallback, useEffect, useState} from "react";
 import LogList from "../components/LogList";
 import TagFilter from "../components/TagFilter";
 import DateFilter from "../components/DateFilter";
+import useFetch from "../hooks/useFetch";
+import ErrorMessage from "../components/ErrorMessage";
+import LoadingSpinner from "../components/LoadingSpinner";
 
 /**
  * Component that provides an interface to manage, view, and export learning logs and summaries.
@@ -11,7 +13,7 @@ import DateFilter from "../components/DateFilter";
  * @return {JSX.Element} The rendered LogsPage component containing log management tools and export functionality.
  */
 export default function LogsPage() {
-	const { keycloak } = useKeycloak();
+	const { get, post, downloadFile, error } = useFetch();
 	const [logs, setLogs] = useState( [] );
 	const [content, setContent] = useState( "" );
 	const [tags, setTags] = useState( "" );
@@ -22,22 +24,10 @@ export default function LogsPage() {
 	const [dateRange, setDateRange] = useState( { from: "", to: "" } );
 	const [presetRange, setPresetRange] = useState( "all" );
 
-	useEffect( () => {
-		console.log( "LogsPage - Component mounted or auth changed" );
-		if ( keycloak.authenticated && keycloak.token ) {
-			fetchLogs();
-		}
-	}, [keycloak.authenticated, keycloak.token] );
-
-	const fetchLogs = async () => {
-		console.log( "LogsPage - Fetching logs from API" );
+	const fetchLogs = useCallback( async () => {
 		setLoadingLogs( true );
 		try {
-			const res = await fetch( "/api/logs?page=0&size=100", {
-				headers: { Authorization: `Bearer ${keycloak.token}` },
-			} );
-			if ( !res.ok ) throw new Error( await res.text() );
-			const data = await res.json();
+			const data = await get( "/api/logs?page=0&size=100" );
 			setLogs( data.content || [] );
 		}
 		catch ( err ) {
@@ -46,23 +36,16 @@ export default function LogsPage() {
 		finally {
 			setLoadingLogs( false );
 		}
-	};
+	}, [get] );
+
+	useEffect( () => {
+		fetchLogs();
+	}, [fetchLogs] );
 
 	const handleAddLog = async ( e ) => {
 		e.preventDefault();
-		console.log( "LogsPage - Adding new log with tags:", tags );
 		try {
-			const logPayload = { content, tags };
-			const res = await fetch( "/api/logs", {
-				method: "POST",
-				headers: {
-					"Content-Type": "application/json",
-					Authorization: `Bearer ${keycloak.token}`,
-				},
-				body: JSON.stringify( logPayload ),
-			} );
-			if ( !res.ok ) throw new Error( await res.text() );
-			const newLog = await res.json();
+			const newLog = await post( "/api/logs", { content, tags } );
 			setLogs( ( prev ) => [...prev, newLog] );
 			setContent( "" );
 			setTags( "" );
@@ -73,20 +56,9 @@ export default function LogsPage() {
 	};
 
 	const handleExportLogs = async ( format = "json" ) => {
-		console.log( "LogsPage - Exporting logs in format:", format );
 		setLoadingExportLogs( true );
 		try {
-			const res = await fetch( `/api/logs/export?format=${format}`, {
-				headers: { Authorization: `Bearer ${keycloak.token}` },
-			} );
-			if ( !res.ok ) throw new Error( await res.text() );
-			const blob = await res.blob();
-			const url = URL.createObjectURL( blob );
-			const a = document.createElement( "a" );
-			a.href = url;
-			a.download = `learning_logs.${format}`;
-			a.click();
-			URL.revokeObjectURL( url );
+			await downloadFile( `/api/logs/export?format=${format}`, `learning_logs.${format}` );
 		}
 		catch ( err ) {
 			console.error( "Failed to export logs:", err );
@@ -97,20 +69,9 @@ export default function LogsPage() {
 	};
 
 	const handleExportSummaries = async ( format = "json" ) => {
-		console.log( "LogsPage - Exporting summaries in format:", format );
 		setLoadingExportSummaries( true );
 		try {
-			const res = await fetch( `/api/summaries/export?format=${format}`, {
-				headers: { Authorization: `Bearer ${keycloak.token}` },
-			} );
-			if ( !res.ok ) throw new Error( await res.text() );
-			const blob = await res.blob();
-			const url = URL.createObjectURL( blob );
-			const a = document.createElement( "a" );
-			a.href = url;
-			a.download = `summaries.${format}`;
-			a.click();
-			URL.revokeObjectURL( url );
+			await downloadFile( `/api/summaries/export?format=${format}`, `summaries.${format}` );
 		}
 		catch ( err ) {
 			console.error( "Failed to export summaries:", err );
@@ -148,6 +109,8 @@ export default function LogsPage() {
 		<div className="container">
 			<h2>My Learning Logs</h2>
 
+			<ErrorMessage message={error}/>
+
 			<form onSubmit={handleAddLog}>
         <textarea
 	        value={content}
@@ -180,7 +143,7 @@ export default function LogsPage() {
 			</div>
 
 			{loadingLogs ? (
-				<p>Loading logs...</p>
+				<LoadingSpinner label="Loading logs..."/>
 			) : (
 				<LogList logs={filteredLogs} activeTag={activeTag}/>
 			)}
