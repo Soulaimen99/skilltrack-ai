@@ -151,7 +151,13 @@ public class QuizService {
 	 * @param goal The learning goal to generate questions about
 	 */
 	private void generateAIQuestions( Quiz quiz, LearningGoal goal ) {
-		// Create a prompt for the AI to generate questions
+		List<QuizQuestion> questions = generateQuestionsWithFallback( quiz, goal );
+		quizQuestionRepository.saveAll( questions );
+		quiz.setQuizQuestions( questions );
+		logger.info( "Successfully generated and saved {} AI questions for quiz: {}", questions.size(), quiz.getId() );
+	}
+
+	private List<QuizQuestion> generateQuestionsWithFallback( Quiz quiz, LearningGoal goal ) {
 		String promptText = String.format( """
 				You are an educational quiz generator. Create 3 quiz questions about the following learning goal:
 				
@@ -173,17 +179,22 @@ public class QuizService {
 				Make sure the questions test understanding of the topic, not just memorization.
 				""", goal.getTitle(), goal.getDescription() );
 
-		// Call the OpenAI API to generate questions
-		String aiResponse = chatModel.call( new Prompt( promptText ) ).getResult().getOutput().getText();
-		logger.debug( "Received response from AI model" );
+		try {
+			String aiResponse = chatModel.call( new Prompt( promptText ) ).getResult().getOutput().getText();
+			logger.debug( "Received response from AI model" );
 
-		// Parse the AI response to extract questions
-		List<QuizQuestion> questions = parseAIResponse( aiResponse, quiz );
-		logger.debug( "Created {} questions from AI response", questions.size() );
+			List<QuizQuestion> questions = parseAIResponse( aiResponse, quiz );
+			if ( questions.size() < 3 ) {
+				logger.warn( "AI generated only {} valid quiz questions for quiz: {}, using fallback to fill the rest", questions.size(), quiz.getId() );
+				questions.addAll( buildFallbackQuestions( quiz, goal, 3 - questions.size() ) );
+			}
 
-		// Save the questions
-		quizQuestionRepository.saveAll( questions );
-		logger.info( "Successfully generated and saved {} AI questions for quiz: {}", questions.size(), quiz.getId() );
+			return questions;
+		}
+		catch ( Exception ex ) {
+			logger.warn( "AI quiz generation failed for quiz: {}, using fallback questions", quiz.getId(), ex );
+			return buildFallbackQuestions( quiz, goal, 3 );
+		}
 	}
 
 	/**
@@ -232,7 +243,7 @@ public class QuizService {
 
 				// Set the question type
 				try {
-					QuizType type = QuizType.valueOf( typeStr );
+					QuizType type = QuizType.valueOf( typeStr.toUpperCase() );
 					question.setType( type );
 					logger.debug( "Set question type to: {}", type );
 
@@ -258,6 +269,56 @@ public class QuizService {
 
 		logger.info( "Successfully parsed {} questions from AI response for quiz: {}", questions.size(), quiz.getId() );
 		return questions;
+	}
+
+	private List<QuizQuestion> buildFallbackQuestions( Quiz quiz, LearningGoal goal, int count ) {
+		List<QuizQuestion> fallbackQuestions = new ArrayList<>();
+
+		if ( count <= 0 ) {
+			return fallbackQuestions;
+		}
+
+		List<QuizQuestion> templates = List.of(
+				createFallbackQuestion(
+						quiz,
+						QuizType.MCQ,
+						"What is the main topic of this goal?",
+						goal.getTitle() + ";Review the goal details;Skip the goal;Change to a different topic",
+						goal.getTitle()
+				),
+				createFallbackQuestion(
+						quiz,
+						QuizType.BOOLEAN,
+						"Does this goal include a written description?",
+						null,
+						goal.getDescription() != null && !goal.getDescription().isBlank() ? "true" : "false"
+				),
+				createFallbackQuestion(
+						quiz,
+						QuizType.TEXT,
+						"What is one first step you can take toward this goal?",
+						null,
+						"Review the goal and start with a small practice step."
+				)
+		);
+
+		for ( int i = 0; i < Math.min( count, templates.size() ); i++ ) {
+			fallbackQuestions.add( templates.get( i ) );
+		}
+
+		return fallbackQuestions;
+	}
+
+	private QuizQuestion createFallbackQuestion( Quiz quiz, QuizType type, String questionText, String options, String answer ) {
+		QuizQuestion question = new QuizQuestion();
+		question.setQuiz( quiz );
+		question.setType( type );
+		question.setQuestion( questionText );
+		question.setOptions( options );
+		question.setCorrectAnswer( answer );
+		question.setScore( 10 );
+		question.setDuration( 0 );
+		return question;
 	}
 
 	@Transactional
