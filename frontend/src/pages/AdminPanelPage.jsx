@@ -56,7 +56,6 @@ export default function AdminPanel() {
 
 	// Fetch all users
 	useEffect( () => {
-		console.log( "AdminPanel - Component mounted, fetching users" );
 		const fetchUsers = async () => {
 			try {
 				const data = await get( "/api/admin/users" );
@@ -75,7 +74,6 @@ export default function AdminPanel() {
 	useEffect( () => {
 		if ( !selectedUserId ) return;
 
-		console.log( "AdminPanel - User or date range changed, fetching logs and summaries for user ID:", selectedUserId );
 		const fetchLogsAndSummaries = async () => {
 			try {
 				setError( null );
@@ -111,7 +109,6 @@ export default function AdminPanel() {
 	const handleExportUserLogs = useCallback( async ( format = "json" ) => {
 		if ( !selectedUserId ) return;
 
-		console.log( "AdminPanel - Exporting logs for user ID:", selectedUserId, "in format:", format );
 		setLoadingExportLogs( true );
 		try {
 			const params = new URLSearchParams();
@@ -140,7 +137,6 @@ export default function AdminPanel() {
 	const handleExportUserSummaries = useCallback( async ( format = "json" ) => {
 		if ( !selectedUserId ) return;
 
-		console.log( "AdminPanel - Exporting summaries for user ID:", selectedUserId, "in format:", format );
 		setLoadingExportSummaries( true );
 		try {
 			const params = new URLSearchParams();

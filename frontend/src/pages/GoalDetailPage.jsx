@@ -27,16 +27,22 @@ function sortByDateDesc( items, getDate ) {
 export default function GoalDetailPage() {
 	const { goalId } = useParams();
 	const navigate = useNavigate();
-	const { get } = useFetch();
+	const { get, post } = useFetch();
 	const [goal, setGoal] = useState( null );
 	const [logs, setLogs] = useState( [] );
 	const [quizzes, setQuizzes] = useState( [] );
 	const [instructions, setInstructions] = useState( [] );
+	const [logContent, setLogContent] = useState( "" );
+	const [logTags, setLogTags] = useState( "" );
+	const [generatedAdvice, setGeneratedAdvice] = useState( "" );
 	const [goalError, setGoalError] = useState( "" );
 	const [logsError, setLogsError] = useState( "" );
 	const [quizzesError, setQuizzesError] = useState( "" );
 	const [instructionsError, setInstructionsError] = useState( "" );
+	const [actionError, setActionError] = useState( "" );
 	const [loading, setLoading] = useState( true );
+	const [savingLog, setSavingLog] = useState( false );
+	const [generatingAdvice, setGeneratingAdvice] = useState( false );
 
 	const loadGoalDetails = useCallback( async () => {
 		if ( !goalId ) {
@@ -50,6 +56,7 @@ export default function GoalDetailPage() {
 		setLogsError( "" );
 		setQuizzesError( "" );
 		setInstructionsError( "" );
+		setActionError( "" );
 
 		try {
 			const goalData = await get( `/api/goals/${goalId}` );
@@ -86,6 +93,7 @@ export default function GoalDetailPage() {
 				.filter( ( instruction ) => instruction.goalId === goalId )
 				.sort( ( left, right ) => new Date( right.createdAt ).getTime() - new Date( left.createdAt ).getTime() );
 			setInstructions( goalInstructions );
+			setGeneratedAdvice( goalInstructions[0]?.advice || "" );
 		}
 		else {
 			setInstructionsError( "Unable to load coaching history for this goal." );
@@ -115,6 +123,54 @@ export default function GoalDetailPage() {
 
 	const completedQuizzes = quizzes.filter( ( quiz ) => quiz.completed ).length;
 	const recentInstruction = instructions[0] || null;
+	const recentQuiz = quizzes[0] || null;
+
+	const refreshGoal = useCallback( async () => {
+		await loadGoalDetails();
+	}, [loadGoalDetails] );
+
+	const handleAddLog = async ( event ) => {
+		event.preventDefault();
+		setSavingLog( true );
+		setActionError( "" );
+
+		try {
+			await post( "/api/logs", {
+				content: logContent,
+				tags: logTags,
+				goalId: goal.id,
+			} );
+			setLogContent( "" );
+			setLogTags( "" );
+			await refreshGoal();
+		}
+		catch {
+			setActionError( "Could not save a new log for this goal." );
+		}
+		finally {
+			setSavingLog( false );
+		}
+	};
+
+	const handleGenerateAdvice = async () => {
+		setGeneratingAdvice( true );
+		setActionError( "" );
+
+		try {
+			const instruction = await post( "/api/instructions", {
+				goalId: goal.id,
+				logs: logs,
+			} );
+			setGeneratedAdvice( instruction.advice || "" );
+			await refreshGoal();
+		}
+		catch {
+			setActionError( "Could not generate AI coaching for this goal." );
+		}
+		finally {
+			setGeneratingAdvice( false );
+		}
+	};
 
 	if ( loading ) {
 		return (
@@ -159,11 +215,13 @@ export default function GoalDetailPage() {
 					<Link to={`/quizzes?goalId=${goal.id}`} className="button secondary">
 						View quizzes
 					</Link>
-					<Link to="/instructions" className="button secondary">
-						Open AI coach
-					</Link>
+					<button onClick={handleGenerateAdvice} disabled={generatingAdvice || logs.length === 0}>
+						{generatingAdvice ? "Generating..." : "Generate AI coaching"}
+					</button>
 				</div>
 			</div>
+
+			<ErrorMessage message={actionError}/>
 
 			<div className="goal-metrics">
 				<div className="goal-metric">
@@ -186,6 +244,33 @@ export default function GoalDetailPage() {
 
 			<section className="goal-section">
 				<div className="section-header">
+					<h3>Quick log</h3>
+					<p className="section-help">Add a goal-scoped note without leaving this page.</p>
+				</div>
+				<form className="goal-inline-form" onSubmit={handleAddLog}>
+					<textarea
+						value={logContent}
+						onChange={( event ) => setLogContent( event.target.value )}
+						placeholder="What did you learn or practice?"
+						rows="4"
+						required
+					/>
+					<input
+						type="text"
+						value={logTags}
+						onChange={( event ) => setLogTags( event.target.value )}
+						placeholder="Tags (comma separated)"
+					/>
+					<div className="form-actions">
+						<button type="submit" disabled={savingLog}>
+							{savingLog ? "Saving..." : "Save log"}
+						</button>
+					</div>
+				</form>
+			</section>
+
+			<section className="goal-section">
+				<div className="section-header">
 					<h3>Recent logs</h3>
 				</div>
 				<ErrorMessage message={logsError}/>
@@ -195,8 +280,22 @@ export default function GoalDetailPage() {
 			<section className="goal-section">
 				<div className="section-header">
 					<h3>Quizzes for this goal</h3>
+					<p className="section-help">Continue or review the most recent attempts here.</p>
 				</div>
 				<ErrorMessage message={quizzesError}/>
+				{recentQuiz && (
+					<div className="goal-summary-card">
+						<div>
+							<strong>{recentQuiz.completed ? "Last quiz completed" : "Last quiz in progress"}</strong>
+							<p>
+								Score {recentQuiz.score} - {formatDateTime( recentQuiz.startedAt )}
+							</p>
+						</div>
+						<Link to={`/quizzes/${recentQuiz.id}`} className="button secondary">
+							{recentQuiz.completed ? "Review quiz" : "Continue quiz"}
+						</Link>
+					</div>
+				)}
 				<QuizList
 					quizzes={quizzes.slice( 0, 5 )}
 					onCreateQuiz={() => navigate( `/quizzes/new?goalId=${goal.id}` )}
@@ -209,20 +308,20 @@ export default function GoalDetailPage() {
 					<h3>AI coaching history</h3>
 				</div>
 				<ErrorMessage message={instructionsError}/>
-				{recentInstruction ? (
+				{generatedAdvice ? (
 					<div className="ai-output">
 						<h4>Latest advice</h4>
 						<div className="goal-detail-meta">
-							Generated {formatDateTime( recentInstruction.createdAt )}
+							Generated {formatDateTime( recentInstruction?.createdAt )}
 						</div>
-						<pre>{recentInstruction.advice}</pre>
+						<pre>{generatedAdvice}</pre>
 					</div>
 				) : (
 					<div className="empty-state">
 						<p>No AI coaching has been generated for this goal yet.</p>
-						<Link to="/instructions" className="button secondary">
-							Generate coaching advice
-						</Link>
+						<button onClick={handleGenerateAdvice} disabled={generatingAdvice || logs.length === 0}>
+							{generatingAdvice ? "Generating..." : "Generate coaching advice"}
+						</button>
 					</div>
 				)}
 

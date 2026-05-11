@@ -169,6 +169,8 @@ public class QuizService {
 				2. The question type (MCQ for multiple choice, BOOLEAN for true/false, or TEXT for free text)
 				3. For MCQ questions, provide 4 options separated by semicolons
 				4. The correct answer
+
+				For TEXT questions, provide a concise reference answer or key concepts rather than a long essay.
 				
 				Format your response exactly as follows for each question:
 				QUESTION: [question text]
@@ -348,7 +350,7 @@ public class QuizService {
 		QuizAnswer answer = answerDto.toEntity( question );
 
 		// Check if the answer is correct
-		boolean isCorrect = question.getCorrectAnswer().equalsIgnoreCase( answer.getAnswer() );
+		boolean isCorrect = isAnswerCorrect( question, answer.getAnswer() );
 		answer.setCorrect( isCorrect );
 		logger.debug( "Answer is {}", isCorrect ? "correct" : "incorrect" );
 
@@ -362,6 +364,68 @@ public class QuizService {
 				savedAnswer.getId(), questionId, quizId );
 
 		return QuizDto.from( quizRepository.findById( quizId ).orElseThrow() );
+	}
+
+	private boolean isAnswerCorrect( QuizQuestion question, String userAnswer ) {
+		if ( userAnswer == null || userAnswer.isBlank() ) {
+			return false;
+		}
+
+		if ( question.getType() == QuizType.TEXT ) {
+			return evaluateTextAnswer( question, userAnswer.trim() );
+		}
+
+		String correctAnswer = question.getCorrectAnswer();
+		return correctAnswer != null && correctAnswer.equalsIgnoreCase( userAnswer.trim() );
+	}
+
+	private boolean evaluateTextAnswer( QuizQuestion question, String userAnswer ) {
+		String referenceAnswer = question.getCorrectAnswer() != null ? question.getCorrectAnswer().trim() : "";
+
+		String promptText = String.format( """
+				You are grading a learner's free-text quiz answer.
+				Question: %s
+				Reference answer: %s
+				Learner answer: %s
+
+				Mark the learner answer CORRECT if it expresses the same idea or a valid equivalent,
+				even if the wording differs from the reference answer.
+				Mark it INCORRECT only if it is unrelated or clearly wrong.
+
+				Respond with exactly one word: CORRECT or INCORRECT.
+				""", question.getQuestion(), referenceAnswer, userAnswer );
+
+		try {
+			String verdict = chatModel.call( new Prompt( promptText ) ).getResult().getOutput().getText();
+			if ( verdict != null ) {
+				String normalized = verdict.trim().toUpperCase();
+				if ( normalized.startsWith( "CORRECT" ) ) {
+					return true;
+				}
+			}
+		}
+		catch ( Exception ex ) {
+			logger.warn( "Text answer grading failed for question: {}, falling back to heuristic evaluation", question.getId(), ex );
+		}
+
+		return textAnswerLooksRelevant( question.getQuestion(), referenceAnswer, userAnswer );
+	}
+
+	private boolean textAnswerLooksRelevant( String questionText, String referenceAnswer, String userAnswer ) {
+		String normalizedAnswer = userAnswer.toLowerCase();
+
+		String[] meaningfulKeywords = {
+				"bias", "fair", "unfair", "privacy", "safety", "harm", "misuse", "control",
+				"accountability", "transparency", "rights", "error", "autonomy", "discrimination"
+		};
+
+		for ( String keyword : meaningfulKeywords ) {
+			if ( normalizedAnswer.contains( keyword ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	@Transactional

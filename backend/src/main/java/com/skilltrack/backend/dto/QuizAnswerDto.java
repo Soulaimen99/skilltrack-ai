@@ -33,6 +33,7 @@ public record QuizAnswerDto(
 		quizAnswer.setScore( this.score );
 		quizAnswer.setCorrect( this.correct );
 		quizAnswer.setAttemptedAt( this.attemptedAt != null ? this.attemptedAt : LocalDateTime.now() );
+		quizQuestion.setAnswer( quizAnswer );
 		return quizAnswer;
 	}
 }

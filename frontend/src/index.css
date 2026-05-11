@@ -489,6 +489,15 @@ li {
     margin-bottom: 1.5rem;
 }
 
+.goal-detail-page .page-header {
+    align-items: flex-start;
+    gap: 1rem;
+}
+
+.goal-detail-page .goal-detail-actions {
+    justify-content: flex-end;
+}
+
 .back-button {
     padding: 0.5rem 1rem;
     background-color: transparent;
@@ -517,6 +526,103 @@ li {
 
 .quiz-item.in-progress {
     border-left: 4px solid #f59e0b; /* Amber for in-progress */
+}
+
+.goal-detail-description {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    max-width: 60rem;
+}
+
+.goal-detail-meta {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.goal-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.goal-metrics {
+    display: grid;
+    grid-template-columns: repeat( auto-fit, minmax( 160px, 1fr ) );
+    gap: 1rem;
+}
+
+.goal-metric {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.goal-metric span {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.goal-metric strong {
+    font-size: 1.5rem;
+}
+
+.goal-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.section-help {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.goal-inline-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.goal-inline-form textarea {
+    min-height: 8rem;
+    resize: vertical;
+}
+
+.goal-summary-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+}
+
+.goal-summary-card p {
+    margin-top: 0.25rem;
+    color: var(--muted);
+}
+
+.goal-instruction-list {
+    margin-top: 0.5rem;
+}
+
+.goal-instruction-item {
+    flex-direction: column;
 }
 
 .quiz-item-header {

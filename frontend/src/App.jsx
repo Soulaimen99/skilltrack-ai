@@ -16,19 +16,11 @@ export default function App() {
 	const { keycloak, initialized } = useKeycloak();
 	const isAdmin = keycloak?.tokenParsed?.realm_access?.roles?.includes( "admin" );
 
-	console.log( "App component - Authentication initialized:", initialized );
-
 	if ( !initialized ) return <p>Loading authentication...</p>;
 	if ( !keycloak.authenticated ) {
-		console.log( "User not authenticated, redirecting to login" );
 		keycloak.login();
 		return null;
 	}
-
-	console.log( "User authenticated, user info:", {
-		username: keycloak.tokenParsed?.preferred_username,
-		isAdmin: isAdmin
-	} );
 
 	return (
 		<div className="container">
