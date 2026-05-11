@@ -4,13 +4,6 @@ import useFetch from "../hooks/useFetch";
 import ErrorMessage from "../components/ErrorMessage";
 import LoadingSpinner from "../components/LoadingSpinner";
 
-/**
- * Renders a GoalsPage component that allows users to view, create, and manage their learning goals.
- * It fetches goals for authenticated users, displays the list of goals, and provides functionalities
- * to create new goals.
- *
- * @return {JSX.Element} A React component displaying the goals list and a form to create new goals.
- */
 export default function GoalsPage() {
 	const { get, post, loading, error } = useFetch();
 	const [goals, setGoals] = useState( [] );
@@ -72,8 +65,10 @@ export default function GoalsPage() {
 				{goals.map( ( goal ) => (
 					<li key={goal.id}>
 						<div className="input-left">
-							<div className="input-first">{goal.title}</div>
-							<div className="input-second">{goal.description || "—"}</div>
+							<Link to={`/goals/${goal.id}`} className="input-first goal-title-link">
+								{goal.title}
+							</Link>
+							<div className="input-second">{goal.description || "-"}</div>
 							<div className="input-footer">
 								Created: {new Date( goal.date ).toLocaleDateString()}{" "}
 								{new Date( goal.date ).toLocaleTimeString( [], {
@@ -83,6 +78,9 @@ export default function GoalsPage() {
 							</div>
 						</div>
 						<div className="goal-actions">
+							<Link to={`/goals/${goal.id}`} className="button secondary">
+								View Goal
+							</Link>
 							<Link to={`/quizzes/new?goalId=${goal.id}`} className="button">
 								Create Quiz
 							</Link>

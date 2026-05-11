@@ -760,6 +760,90 @@ li {
     gap: 0.5rem;
 }
 
+.goal-title-link {
+    display: block;
+    color: var(--fg);
+    text-decoration: none;
+}
+
+.goal-title-link:hover {
+    color: var(--primary);
+}
+
+.goal-detail-page {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.goal-detail-header {
+    align-items: flex-start;
+}
+
+.goal-detail-description {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    max-width: 60rem;
+}
+
+.goal-detail-meta {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.goal-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: flex-end;
+}
+
+.goal-metrics {
+    display: grid;
+    grid-template-columns: repeat( auto-fit, minmax( 160px, 1fr ) );
+    gap: 1rem;
+}
+
+.goal-metric {
+    padding: 1rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--surface);
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.goal-metric span {
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.goal-metric strong {
+    font-size: 1.5rem;
+}
+
+.goal-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.goal-instruction-list {
+    margin-top: 0.5rem;
+}
+
+.goal-instruction-item {
+    flex-direction: column;
+}
+
 .button {
     display: inline-block;
     padding: 0.5rem 1rem;

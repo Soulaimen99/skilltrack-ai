@@ -2,6 +2,7 @@ import {useKeycloak} from "@react-keycloak/web";
 import {Navigate, Route, Routes} from "react-router-dom";
 import Header from "./components/Header";
 import GoalsPage from "./pages/GoalsPage";
+import GoalDetailPage from "./pages/GoalDetailPage";
 import InstructionsPage from "./pages/InstructionsPage";
 import LogsPage from "./pages/LogsPage";
 import ProgressPage from "./pages/ProgressPage";
@@ -35,6 +36,7 @@ export default function App() {
 			<main>
 				<Routes>
 					<Route path="/goals" element={<GoalsPage/>}/>
+					<Route path="/goals/:goalId" element={<GoalDetailPage/>}/>
 					<Route path="/instructions" element={<InstructionsPage/>}/>
 					<Route path="/logs" element={<LogsPage/>}/>
 					<Route path="/progress" element={<ProgressPage/>}/>
